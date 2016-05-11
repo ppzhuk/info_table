@@ -17,18 +17,18 @@ class Groups extends ActiveRecord
     const PERSON_HEAD_OF_DEPARTMENT = 3;
     const PERSON_ADMIN = 4;
 
-    static public function newGroup($owner) {
+    static public function createGroup($owner, $data) {
         $db = self::getDb();
         $transaction = $db->beginTransaction();
         try {
             $db->createCommand()->insert('groups', [
-                'group_name' => Yii::$app->request->post('nameGroup'),
-                'group_type' => Yii::$app->request->post('typeGroup'),
-                'owner' => $owner,
+                'group_name' => $data['nameGroup'],
+                'group_type' => $data['typeGroup'],
+                'owner' => $owner
             ])->execute();
             $groupId = $db->lastInsertID;
             $insertValues = [];
-            foreach (Yii::$app->request->post('membersGroup') as $personId) {
+            foreach ($data['membersGroup'] as $personId) {
                 $insertValues[] = [$groupId, $personId];
             }
             $db->createCommand()->batchInsert('relation', ['group', 'person'], $insertValues)->execute();
@@ -68,11 +68,17 @@ class Groups extends ActiveRecord
                 `p`.`access_type` AS `accessType`
             FROM
               `person` AS `p`
-            " . (count($condArr) ? "WHERE " . implode(", ", $condArr) : "") . "
+            " . (count($condArr) ? "WHERE " . implode(" AND ", $condArr) : "") . "
         ", $paramsArr)->queryAll();
     }
 
-    static public function getGroups($accessLevel = self::PERSON_ADMIN) {
+    static public function getGroups($groupId = null, $accessLevel = self::PERSON_ADMIN) {
+        $condArr = [];
+        $paramsArr = [];
+        if ($groupId) {
+            $condArr[] = "`g`.`id` = :groupId";
+            $paramsArr['groupId'] = intval($groupId);
+        }
         return self::getDb()->createCommand("
             SELECT
               `g`.`id` AS `groupId`,
@@ -93,6 +99,7 @@ class Groups extends ActiveRecord
                   `r`.`group`
               ) AS `e` ON `e`.`groupId` = `g`.`id`
               LEFT JOIN `person` AS `p` ON `p`.`id` = `g`.`owner`
-        ")->queryAll();
+            " . (count($condArr) ? "WHERE " . implode(" AND ", $condArr) : "") . "
+        ", $paramsArr)->queryAll();
     }
 }

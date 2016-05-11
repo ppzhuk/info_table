@@ -36,15 +36,15 @@ AppAsset::register($this);
     echo Nav::widget([
         'options' => ['class' => 'navbar-nav navbar-right'],
         'items' => [
-            ['label' => 'Список групп', 'url' => ['/site/index']],
-            ['label' => 'Управление пользователями', 'url' => ['/site/manage-users']],
+            ['label' => 'Список групп', 'url' => ['/admin/index']],
+            ['label' => 'Управление пользователями', 'url' => ['/admin/manage-users']],
             ['label' => 'Управление группами', 'url' => ['/admin/manage-groups']],
             ['label' => 'Графики', 'url' => ['/admin/charts']],
             Yii::$app->user->isGuest ? (
-                ['label' => 'Login', 'url' => ['/site/login']]
+                ['label' => 'Login', 'url' => ['/admin/login']]
             ) : (
                 '<li>'
-                . Html::beginForm(['/site/logout'], 'post', ['class' => 'navbar-form'])
+                . Html::beginForm(['/admin/logout'], 'post', ['class' => 'navbar-form'])
                 . Html::submitButton(
                     'Logout (' . Yii::$app->user->identity->username . ')',
                     ['class' => 'btn btn-link']
