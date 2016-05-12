@@ -34,13 +34,14 @@ ENGINE = InnoDB;
 -- Table `info_table`.`person`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `info_table`.`person` ;
-
 CREATE TABLE IF NOT EXISTS `info_table`.`person` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `fio` VARCHAR(100) NULL,
-  `login` VARCHAR(45) NOT NULL,
-  `access_type` INT NOT NULL,
+  `login` VARCHAR(45) NULL,
+  `password` VARCHAR(45) NULL,
+  `access_type` INT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE INDEX `id_UNIQUE` (`id` ASC),
   UNIQUE INDEX `login_UNIQUE` (`login` ASC),
   INDEX `acc_type_idx` (`access_type` ASC),
   CONSTRAINT `acc_type`
