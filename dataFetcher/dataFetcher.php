@@ -118,4 +118,6 @@
        
         closeConnections();
     }
+    
+    fetchData();
 ?>
