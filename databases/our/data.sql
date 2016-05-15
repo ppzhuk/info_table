@@ -16,7 +16,7 @@ INSERT INTO `info_table`.`access_type` (name) VALUES("administrator");
 INSERT INTO `info_table`.`person` (access_type, login, password, fio) VALUES(1, "KR00ALKOSEVA", "pw123", "Алексеева Екатерина Владимировна");
 INSERT INTO `info_table`.`person` (access_type, login, password, fio) VALUES(1, "KR01STOPUDOV", "pw1234", "Кучеренкова Людмила Николаевна");
 INSERT INTO `info_table`.`person` (access_type, login, password, fio) VALUES(1, "KR00SBUHOI", "pwpw123", "Сёмкин Владимир Юрьевич");
-INSERT INTO `info_table`.`person` (access_type, login) VALUES(1, "KR00VPOPIK");
+INSERT INTO `info_table`.`person` (access_type, login, password) VALUES(1, "KR00VPOPIK", "pwpw123");
 INSERT INTO `info_table`.`person` (access_type, login, password, fio) VALUES(1, "HD00STRPO", "pws123", "Слепухина Алена Анатольевна");
 INSERT INTO `info_table`.`person` (access_type, login, password, fio) VALUES(1, "HD00ZHUK", "pwqw123", "Сапрыкина Ольга Николаевна");
 INSERT INTO `info_table`.`person` (access_type, login, password, fio) VALUES(1, "HD00VVVVV", "pw43123", "Северова Виктория Вячеславовна");
@@ -25,7 +25,7 @@ INSERT INTO `info_table`.`person` (access_type, login, password, fio) VALUES(1, 
 INSERT INTO `info_table`.`person` (access_type, login, password, fio) VALUES(1, "U40C860", "pawpw123", "Кольцова Наталья Николаевна");
 INSERT INTO `info_table`.`person` (access_type, login, password, fio) VALUES(1, "U393CV72", "dspw123", "Меркушева Анастасия Александровна");
 INSERT INTO `info_table`.`person` (access_type, login, password, fio) VALUES(1, "U82D12", "sdspw123", "Татти Эвелина Семеновна");
-INSERT INTO `info_table`.`person` (access_type, login) VALUES(1, "UNKNOWN_LOGIN");
+INSERT INTO `info_table`.`person` (access_type, login, password) VALUES(1, "UNKNOWN_LOGIN", "pwpw123");
 
 -- другие роли
 
