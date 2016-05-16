@@ -8,6 +8,7 @@ use yii\bootstrap\Nav;
 use yii\bootstrap\NavBar;
 use yii\widgets\Breadcrumbs;
 use app\assets\AppAsset;
+use app\models\Person;
 
 AppAsset::register($this);
 ?>
@@ -26,6 +27,7 @@ AppAsset::register($this);
 
 <div class="wrap">
     <?php
+    //var_dump(Yii::$app->user->isGuest); die;
     NavBar::begin([
         'brandLabel' => 'Ростелеком',
         'brandUrl' => Yii::$app->homeUrl,
@@ -46,7 +48,7 @@ AppAsset::register($this);
                 '<li>'
                 . Html::beginForm(['/admin/logout'], 'post', ['class' => 'navbar-form'])
                 . Html::submitButton(
-                    'Logout (' . Yii::$app->user->identity->username . ')',
+                    'Logout (' . Person::$fullName . ')',
                     ['class' => 'btn btn-link']
                 )
                 . Html::endForm()

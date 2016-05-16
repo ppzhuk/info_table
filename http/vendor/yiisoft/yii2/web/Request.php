@@ -131,6 +131,11 @@ class Request extends \yii\base\Request
      * @var string a secret key used for cookie validation. This property must be set if [[enableCookieValidation]] is true.
      */
     public $cookieValidationKey;
+
+    /**
+     * @var string a secret key used for generate password hash
+     */
+    public $passwordSalt;
     /**
      * @var string the name of the POST parameter that is used to indicate if a request is a PUT, PATCH or DELETE
      * request tunneled through POST. Defaults to '_method'.

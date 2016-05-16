@@ -6,6 +6,7 @@
 
 namespace app\models;
 
+use Yii;
 use yii\base\Exception;
 use yii\db\ActiveRecord;
 
@@ -16,6 +17,106 @@ class Groups extends ActiveRecord
     const PERSON_MANAGER = 2;
     const PERSON_HEAD_OF_DEPARTMENT = 3;
     const PERSON_ADMIN = 4;
+
+    static public function getPlans($personId, $groupId)
+    {
+        return self::getDb()->createCommand("
+            SELECT
+                `p`.`id` AS `idPerson`,
+                `p`.`fio` AS `fioPerson`,
+                `p`.`login` AS `loginPerson`,
+                `p`.`access_type` AS `accessType`,
+                `at`.`name` AS `accessTypeName`
+            FROM
+              `person` AS `p`
+              LEFT JOIN `access_type` AS `at` ON `at`.`id` = `p`.`access_type`
+              LEFT JOIN `plans` AS `pl` ON `pl`.`seller_id` = `p`.`id`
+            WHERE
+              `p`.`id` = :personId AND
+              `pl`.`groups_id` = :groupId
+        ", ['personId' => $personId, 'groupId' => $groupId])->queryAll();
+    }
+
+    static public function setPlans($personId, $groupId, $data)
+    {
+        $db = self::getDb();
+        $transaction = $db->beginTransaction();
+        try {
+            $cmd = $db->createCommand()->insert('plans', [
+                'seller_id' => $personId,
+                'groups_id' => $groupId,
+                'monthly' => $data['monthlyPlan'],
+                'quarterly' => $data['quarterlyPlan']
+            ]);
+            $q = $cmd->getRawSql();
+            $cmd->cancel();
+            $q .= " ON DUPLICATE KEY UPDATE `monthly` = VALUES(`monthly`), `quarterly` = VALUES(`quarterly`)";
+            $db->createCommand($q)->execute();
+            $transaction->commit();
+            return true;
+        } catch(Exception $e) {
+            $transaction->rollBack();
+            return false;
+        }
+    }
+
+    static public function getPerson($id)
+    {
+        return self::getDb()->createCommand("
+            SELECT
+                `p`.`id` AS `idPerson`,
+                `p`.`fio` AS `fioPerson`,
+                `p`.`login` AS `loginPerson`,
+                `p`.`access_type` AS `accessType`,
+                `at`.`name` AS `accessTypeName`
+            FROM
+              `person` AS `p`
+              LEFT JOIN `access_type` AS `at` ON `at`.`id` = `p`.`access_type`
+            WHERE
+              `p`.`id` = :id
+        ", ['id' => $id])->queryAll();
+    }
+
+    static public function createPerson($data)
+    {
+        $db = self::getDb();
+        $transaction = $db->beginTransaction();
+        try {
+            $db->createCommand()->insert('person', [
+                'fio' => $data['fioPerson'],
+                'login' => $data['loginPerson'],
+                'password' => hash_hmac('md5', $data['passwordPerson'], Yii::$app->request->passwordSalt),
+                'access_type' => $data['access_type']
+            ])->execute();
+            $transaction->commit();
+            return $db->lastInsertID;
+        } catch(Exception $e) {
+            $transaction->rollBack();
+            return false;
+        }
+    }
+
+    static public function updatePerson($id, $data)
+    {
+        $db = self::getDb();
+        $transaction = $db->beginTransaction();
+        try {
+            $forUpdateData = [
+                'fio' => $data['fioPerson'],
+                'login' => $data['loginPerson'],
+                'access_type' => $data['access_type']
+            ];
+            if (!empty($data['passwordPerson'])) {
+                $forUpdateData['password'] = hash_hmac('md5', $data['passwordPerson'], Yii::$app->request->passwordSalt);
+            }
+            $db->createCommand()->update('person', $forUpdateData, 'id=:id', ['id' => $id])->execute();
+            $transaction->commit();
+            return true;
+        } catch(Exception $e) {
+            $transaction->rollBack();
+            return false;
+        }
+    }
 
     static public function createGroup($owner, $data) {
         $db = self::getDb();
@@ -28,12 +129,42 @@ class Groups extends ActiveRecord
             ])->execute();
             $groupId = $db->lastInsertID;
             $insertValues = [];
-            foreach ($data['membersGroup'] as $personId) {
-                $insertValues[] = [$groupId, $personId];
+            if (isset($data['membersGroup']) && is_array($data['membersGroup'])) {
+                foreach ($data['membersGroup'] as $personId) {
+                    $insertValues[] = [$groupId, $personId];
+                }
+                $db->createCommand()->batchInsert('relation', ['group', 'person'], $insertValues)->execute();
             }
-            $db->createCommand()->batchInsert('relation', ['group', 'person'], $insertValues)->execute();
             $transaction->commit();
             return $groupId;
+        } catch(Exception $e) {
+            $transaction->rollBack();
+            return false;
+        }
+    }
+
+    static public function updateGroup($groupId, $data)
+    {
+        if (!$groupId) {
+            return false;
+        }
+        $db = self::getDb();
+        $transaction = $db->beginTransaction();
+        try {
+            $affectedRows = $db->createCommand()->update('groups', ['group_name' => $data['nameGroup']], 'id=:id', ['id' => $groupId])->execute();
+            if ($affectedRows > 1) {
+                throw new Exception('Was changed ' . $affectedRows . ' groups.');
+            }
+            $insertValues = [];
+            if (isset($data['membersGroup']) && is_array($data['membersGroup'])) {
+                foreach ($data['membersGroup'] as $personId) {
+                    $insertValues[] = [$groupId, $personId];
+                }
+                $db->createCommand()->delete('relation', ['group' => $groupId])->execute();
+                $db->createCommand()->batchInsert('relation', ['group', 'person'], $insertValues)->execute();
+            }
+            $transaction->commit();
+            return true;
         } catch(Exception $e) {
             $transaction->rollBack();
             return false;

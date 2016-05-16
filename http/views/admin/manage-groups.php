@@ -15,8 +15,9 @@ $this->title = 'Редактирование групп';
         <div class="col-lg-12 col-md-12 col-sm-12">
             <div class="jumbotron">
                 <h2>Управление группами</h2>
-                <form data-frame="frame1" class="form-horizontal hide" method="post" action="?r=admin%2Fcreate-group">
+                <form data-frame="frame1" class="form-horizontal hide" method="post" action="?r=admin%2Fupdate-group">
                     <input type="hidden" name="_csrf" value="<?=Yii::$app->request->getCsrfToken()?>" />
+                    <input type="hidden" name="groupId" value="0" />
                     <fieldset>
                         <legend>Редактирование группы</legend>
                         <div class="form-group">
@@ -74,7 +75,7 @@ $this->title = 'Редактирование групп';
                                 </div>
                         </div>
                         <a data-targetframe="frame0" class="btn btn-default btn-sm">Отмена</a>
-                        <input type="submit" class="btn btn-primary btn-sm" value="Создать"/>
+                        <input type="submit" class="btn btn-primary btn-sm" value="Сохранить"/>
                     </fieldset>
                 </form>
                 <form data-frame="frame2" class="form-horizontal hide" method="post" action="?r=admin%2Fcreate-group">
