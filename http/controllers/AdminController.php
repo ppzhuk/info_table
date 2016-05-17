@@ -14,9 +14,27 @@ use app\models\Groups;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
+use app\models\Person;
 
 class AdminController extends Controller
 {
+    public $accessMap = [
+        'app\controllers\AdminController::actionLogin' => [0],
+        'app\controllers\AdminController::actionLogout' => [1, 2, 3, 4],
+        'app\controllers\AdminController::actionSellsTable' => [1, 2, 3, 4],
+        'app\controllers\AdminController::actionIndex' => [2, 3, 4],
+        'app\controllers\AdminController::actionManageUsers' => [3, 4],
+        'app\controllers\AdminController::actionManageGroups' => [3, 4],
+        'app\controllers\AdminController::actionSellsTable' => [1, 2, 3, 4],
+
+        'app\controllers\AdminController::actionGetUserJson' => [1, 2, 3, 4],
+        'app\controllers\AdminController::actionGetGroupJson' => [1, 2, 3, 4],
+        'app\controllers\AdminController::actionUpdateGroup' => [2, 3, 4],
+        'app\controllers\AdminController::actionUpdateGroup' => [2, 3, 4],
+        'app\controllers\AdminController::actionCreateGroup' => [2, 3, 4],
+        'app\controllers\AdminController::actionUpdateUser' => [2, 3, 4],
+        'app\controllers\AdminController::actionCreateUser' => [4],
+    ];
 
     public function behaviors()
     {
@@ -41,8 +59,34 @@ class AdminController extends Controller
         ];
     }
 
+    private function checkAccess($_func, $redirect = true)
+    {
+        if (Yii::$app->user->isGuest && isset($this->accessMap[$_func]) && in_array(0, $this->accessMap[$_func])) {
+            return true;
+        }
+        if (isset($this->accessMap[$_func]) && in_array(Person::$accessType, $this->accessMap[$_func])) {
+            return true;
+        }
+        if (Person::$accessType == 1) {
+            if ($redirect) {
+                Yii::$app->getResponse()->redirect('?r=admin/sells-table');
+            }
+            return false;
+        }
+        if (Person::$accessType >= 2) {
+            if ($redirect) {
+                $this->goHome();
+            }
+            return false;
+        }
+        return Yii::$app->getResponse()->redirect('?r=admin/login');
+    }
+
     public function actionIndex()
     {
+        if ($this->checkAccess(__METHOD__) !== true) {
+            return;
+        }
         return $this->render('index', [
             'groups' => Groups::getGroups()
         ]);
@@ -50,6 +94,9 @@ class AdminController extends Controller
 
     public function actionLogin()
     {
+        if ($this->checkAccess(__METHOD__) !== true) {
+            return;
+        }
         if (!Yii::$app->user->isGuest) {
             return $this->goHome();
         }
@@ -65,12 +112,18 @@ class AdminController extends Controller
 
     public function actionLogout()
     {
+        if ($this->checkAccess(__METHOD__) !== true) {
+            return;
+        }
         Yii::$app->user->logout();
         return $this->goHome();
     }
 
     public function actionManageUsers()
     {
+        if ($this->checkAccess(__METHOD__) !== true) {
+            return;
+        }
         return $this->render('manage-users', [
             'persons' => Groups::getPersons(),
             'accessTypes' => AccessType::find()->orderBy('id')->all()
@@ -79,8 +132,9 @@ class AdminController extends Controller
 
     public function actionManageGroups()
     {
-        //Groups::setPlans(1, 1, ['quarterlyPlan' => '120', 'monthlyPlan' => 532]);
-        //var_dump(Groups::getPerson(1)); die;
+        if ($this->checkAccess(__METHOD__) !== true) {
+            return;
+        }
         return $this->render('manage-groups', [
             'groups' => Groups::getGroups(),
             'otherPersons' => Groups::getPersons(null, Groups::PERSON_SELLER),
@@ -90,9 +144,12 @@ class AdminController extends Controller
 
     public function actionSellsTable()
     {
+        if ($this->checkAccess(__METHOD__) !== true) {
+            return;
+        }
+
         $this->layout = 'tables';
         $group = Groups::getGroups(Yii::$app->request->get('groupId'));
-        //var_dump($group);
         if (count($group) != 1) {
             return $this->render('choice-group',[
                 'groups' => Groups::getGroups()
@@ -103,6 +160,7 @@ class AdminController extends Controller
         if ($group[0]['groupType'] == 'seller') {
             return $this->render('sellers-table', [
                 'groupId' =>  $group[0]['groupId'],
+                'groupName' => $group[0]['groupName'],
                 'persons' => $persons
             ]);
         }
@@ -118,6 +176,9 @@ class AdminController extends Controller
 
     public function actionCreateUser()
     {
+        if ($this->checkAccess(__METHOD__) !== true) {
+            return;
+        }
         $data = [
             'loginPerson' => Yii::$app->request->post('loginUser'),
             'fioPerson' => Yii::$app->request->post('nameUser'),
@@ -134,6 +195,9 @@ class AdminController extends Controller
 
     public function actionUpdateUser()
     {
+        if ($this->checkAccess(__METHOD__) !== true) {
+            return;
+        }
         $data = [
             'loginPerson' => Yii::$app->request->post('loginUser'),
             'fioPerson' => Yii::$app->request->post('nameUser'),
@@ -150,6 +214,9 @@ class AdminController extends Controller
 
     public function actionCreateGroup()
     {
+        if ($this->checkAccess(__METHOD__, false) !== true) {
+            return;
+        }
         $data = [
             'nameGroup' => Yii::$app->request->post('nameGroup'),
             'typeGroup' => Yii::$app->request->post('typeGroup'),
@@ -165,6 +232,9 @@ class AdminController extends Controller
 
     public function actionUpdateGroup()
     {
+        if ($this->checkAccess(__METHOD__, false) !== true) {
+            return;
+        }
         $data = [
             'nameGroup' => Yii::$app->request->post('nameGroup'),
             'membersGroup' => Yii::$app->request->post('membersGroup')
@@ -180,6 +250,9 @@ class AdminController extends Controller
     // Далее идут ajax функции
     public function actionGetGroupJson()
     {
+        if ($this->checkAccess(__METHOD__, false) !== true) {
+            return;
+        }
         $id = Yii::$app->request->post('groupId');
         $data = Groups::getGroups($id);
         $data['members'] = Groups::getPersons($id, Groups::PERSON_SELLER);
@@ -196,6 +269,9 @@ class AdminController extends Controller
 
     public function actionGetUserJson()
     {
+        if ($this->checkAccess(__METHOD__, false) !== true) {
+            return;
+        }
         $id = Yii::$app->request->post('userId');
         $data = Groups::getPerson($id);
 

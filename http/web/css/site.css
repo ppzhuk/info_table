@@ -102,3 +102,34 @@ a.desc:after {
     text-align: left !important;
     color: #555 !important;
 }
+
+.table-ratings {
+    position: absolute;
+    /*    height: 100%;*/
+    overflow-y: visible;
+    height: 500px;
+}
+
+.table-ratings .row:nth-child(2) {
+    background: #ffd700;
+}
+
+.table-ratings .row:nth-child(3) {
+    background: #c0c0c0;
+}
+
+.table-ratings .row:nth-child(4) {
+    background: #cd7f32;
+}
+
+.table-ratings div.row {
+    line-height: 40px;
+    width: 100%;
+    position: absolute;
+    transition: top 1s cubic-bezier(0, 0, 1, 1), background 1s linear;
+}
+
+.footer {
+    position: relative;
+    z-index: 100;
+}

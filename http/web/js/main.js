@@ -109,4 +109,76 @@ $(function() {
             }
         })
     }
+
+    function moveRow(id, position) {
+        var curRow = $('#row' + id);
+        $('[data-position]').each(function(){
+            console.log($(this).css('top'));
+            if ($(this).css('top') == 40 * position + 'px') {
+                var buffTop = $(this).css('top');
+                $(this).css('top', curRow.css('top'));
+                curRow.css('top', buffTop);
+                var buffPlace = $(this).find('div.place').html();
+                $(this).find('div.place').html(curRow.find('div.place').html());
+                curRow.find('div.place').html(buffPlace);
+                var buffPosition = $(this).data('position');
+                $(this).data('position', curRow.data('position'));
+                curRow.data('position', buffPosition);
+                var buffBackground = $(this).css('background');
+                $(this).css('background', curRow.css('background'));
+                curRow.css('background', buffBackground);
+                var buffZindex = $(this).css('z-index');
+                $(this).css('z-index', curRow.css('z-index'));
+                curRow.css('z-index', buffZindex);
+                return false;
+            }
+        });
+    }
+
+    function pullRows() {
+        $('[data-position]').each(function() {
+            var curRow = $(this);
+            if (curRow.data('position') > 3) {
+                curRow.css('opacity', 0);
+                curRow.css('top', 40 * curRow.data('position') + 'px');
+                setTimeout(function(){
+                    curRow.css('transition', 'opacity 1s linear');
+                    curRow.css('opacity', 1);
+                }, 10);
+            }
+        });
+    }
+
+    function pushRows() {
+        var counter = 0;
+        $('[data-position]').each(function(){
+            console.log($(this).css('top'));
+            if ($(this).data('position') > 3) {
+                $(this).css('transition', 'top 2s linear');
+                if ($(this).css('top') > '120px') {
+                    counter++;
+                    $(this).css('top', '-=40');
+                }
+            }
+        });
+        if (counter) {
+            setTimeout(function(){
+                pushRows();
+            }, 2000);
+        } else {
+            setTimeout(function(){
+                pullRows();
+            }, 10);
+        }
+        //curRow.css('top', 60 + 40 * position);
+    }
+    setTimeout(function(){
+        moveRow(5, 8);
+    }, 1000);
+    /*    setTimeout(function(){
+     moveRow(6, 2);
+     }, 3000);*/
+    setTimeout(function(){
+        pushRows();
+    }, 3000);
 });
