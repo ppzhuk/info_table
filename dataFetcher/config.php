@@ -3,8 +3,8 @@
 
 $rt_db_host = "localhost"; 
 $rt_db_name = "rt"; 
-$rt_db_user = "info_tablo";        
-$rt_db_password = "info_tablo";
+$rt_db_user = "root";        
+$rt_db_password = "sky211993";
 
 $rt_table_name = "kmn_sl_nach";
 
@@ -12,6 +12,6 @@ $rt_table_name = "kmn_sl_nach";
 
 $info_db_host = "localhost"; 
 $info_db_name = "info_table"; 
-$info_db_user = "it_root";        
-$info_db_password = "it_root";
+$info_db_user = "root";        
+$info_db_password = "sky211993";
 ?>

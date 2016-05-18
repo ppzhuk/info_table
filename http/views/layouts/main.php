@@ -39,13 +39,13 @@ AppAsset::register($this);
         switch (Person::$accessType) {
             case 4:
             case 3: {
-                $items[] = ['label' => 'Управление пользователями', 'url' => ['/admin/manage-users']];
-                $items[] = ['label' => 'Управление группами', 'url' => ['/admin/manage-groups']];
+                $items[] = ['label' => 'Пользователи', 'url' => ['/admin/manage-users']];
+                $items[] = ['label' => 'Группы', 'url' => ['/admin/manage-groups']];
                 $items[] = ['label' => 'Правки', 'url' => ['/admin/edits']];
                 $items[] = ['label' => 'Графики', 'url' => ['/admin/charts']];
             }
             case 2: {
-                $items[] = ['label' => 'Список групп', 'url' => ['/admin/index']];
+                $items[] = ['label' => 'Рейтинговая таблица', 'url' => ['/admin/sells-table']];
             }
             case 1:
             case 0:

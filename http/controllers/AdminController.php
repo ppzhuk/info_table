@@ -23,16 +23,16 @@ class AdminController extends Controller
         'app\controllers\AdminController::actionLogout' => [1, 2, 3, 4],
         'app\controllers\AdminController::actionSellsTable' => [1, 2, 3, 4],
         'app\controllers\AdminController::actionIndex' => [2, 3, 4],
-        'app\controllers\AdminController::actionManageUsers' => [3, 4],
-        'app\controllers\AdminController::actionManageGroups' => [3, 4],
+        'app\controllers\AdminController::actionManageUsers' => [4],
+        'app\controllers\AdminController::actionManageGroups' => [2, 4],
         'app\controllers\AdminController::actionSellsTable' => [1, 2, 3, 4],
 
         'app\controllers\AdminController::actionGetUserJson' => [1, 2, 3, 4],
         'app\controllers\AdminController::actionGetGroupJson' => [1, 2, 3, 4],
-        'app\controllers\AdminController::actionUpdateGroup' => [2, 3, 4],
-        'app\controllers\AdminController::actionUpdateGroup' => [2, 3, 4],
-        'app\controllers\AdminController::actionCreateGroup' => [2, 3, 4],
-        'app\controllers\AdminController::actionUpdateUser' => [2, 3, 4],
+        'app\controllers\AdminController::actionGetSellsJson' => [1, 2, 3, 4],
+        'app\controllers\AdminController::actionUpdateGroup' => [2, 4],
+        'app\controllers\AdminController::actionCreateGroup' => [2, 4],
+        'app\controllers\AdminController::actionUpdateUser' => [4],
         'app\controllers\AdminController::actionCreateUser' => [4],
     ];
 
@@ -155,13 +155,15 @@ class AdminController extends Controller
                 'groups' => Groups::getGroups()
             ]);
         }
-        $persons = Groups::getPersons($group[0]['groupId'], Groups::PERSON_SELLER);
+        //$persons = Groups::getPersons($group[0]['groupId'], Groups::PERSON_SELLER);
+        $period = '2016-03-01';
         //var_dump($persons);
         if ($group[0]['groupType'] == 'seller') {
             return $this->render('sellers-table', [
                 'groupId' =>  $group[0]['groupId'],
                 'groupName' => $group[0]['groupName'],
-                'persons' => $persons
+                'period' => $period,
+                'sells' => Groups::getSells($group[0]['groupId'], $period)
             ]);
         }
         if ($group[0]['groupType'] == 'KAM') {
@@ -274,6 +276,20 @@ class AdminController extends Controller
         }
         $id = Yii::$app->request->post('userId');
         $data = Groups::getPerson($id);
+
+        echo json_encode($data);
+        exit;
+    }
+
+    public function actionGetSellsJson()
+    {
+        Groups::randomFill();
+        if ($this->checkAccess(__METHOD__, false) !== true) {
+            return;
+        }
+        $id = Yii::$app->request->post('groupId');
+        $period = Yii::$app->request->post('period');
+        $data = Groups::getSells($id, $period);
 
         echo json_encode($data);
         exit;

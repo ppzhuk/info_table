@@ -8,6 +8,12 @@ use app\models\Person;
 $this->title = 'Список групп';
 ?>
 
+<script>
+    var _csrf = "<?=Yii::$app->request->getCsrfToken(); ?>";
+    var groupId = <?=$groupId; ?>;
+    var period = "<?=$period; ?>";
+</script>
+
 <div class="container">
     <div class="row">
         <div class="col-lg-12 col-md-12 col-sm-12">
@@ -16,6 +22,8 @@ $this->title = 'Список групп';
                 <div class="pull-right">
                     <form action="/web/index.php?r=admin%2Flogout" method="post">
                         <input type="hidden" name="_csrf" value="<?=Yii::$app->request->getCsrfToken()?>" />
+                        <input type="hidden" name="groupId" value="<?=$groupId; ?>" />
+                        <input type="hidden" name="period" value="<?=$period; ?>" />
                         <span class="pull-right"><?=Person::$fullName; ?></span>
                         <br>
                         <span class="pull-right">
@@ -38,7 +46,7 @@ $this->title = 'Список групп';
                     $step = 40;
                     $offset = 0;
                     ?>
-                    <?php foreach($persons as $person): ?>
+                    <?php foreach($sells as $sell): ?>
                         <?php
                         if ($place <= 3){
                             $placeHtml = $place . '<img src="img/' . $place . 'Place.png"/>';
@@ -46,11 +54,11 @@ $this->title = 'Список групп';
                             $placeHtml = $place;
                         }
                         ?>
-                        <div class="row" data-position="<?=$place; ?>" id="row<?=$person['personId']; ?>" style="top: <?=$offset + $step*$place; ?>px; z-index: <?=99-$place; ?>">
+                        <div class="row" data-position="<?=$place; ?>" id="row<?=$sell['personId']; ?>" style="top: <?=$offset + $step*$place; ?>px; z-index: <?=99-$place; ?>">
                             <div class="place col-lg-1 col-md-1 col-sm-1"><?=$placeHtml; ?></div>
-                            <div class="col-lg-5 col-md-5 col-sm-5"><?=$person['personName']; ?></div>
-                            <div class="col-lg-3 col-md-3 col-sm-3">0</div>
-                            <div class="col-lg-3 col-md-3 col-sm-3">0</div>
+                            <div class="col-lg-5 col-md-5 col-sm-5"><?=$sell['personName']; ?></div>
+                            <div class="sells-value col-lg-3 col-md-3 col-sm-3"><?=$sell['sellsValue']; ?></div>
+                            <div class="sells-plan col-lg-3 col-md-3 col-sm-3">0</div>
                         </div>
                         <?php $place++; ?>
                     <?php endforeach; ?>

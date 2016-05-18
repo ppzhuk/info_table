@@ -110,14 +110,41 @@ $(function() {
         })
     }
 
+    function sleep(ms) {
+        ms += new Date().getTime();
+        while (new Date() < ms){}
+    }
+
+    function rebuildTable(data) {
+        $savedData = [];
+        $('[data-position]').each(function(){
+            $(this).css('transition', 'top 1s cubic-bezier(0, 0, 1, 1), background 1s linear');
+            $savedData[$(this).data('position')] = {
+                'position' : $(this).find('div.place').html(),
+                'background' : $(this).css('background')
+            }
+        });
+        for (i in data) {
+            var row = $('#row' + data[i].personId);
+            var newpos = Number(i) + 1;
+            row.find('.sells-value').html(data[i].sellsValue);
+            row.css('top', 40 * newpos + 'px');
+            row.css('background', $savedData[newpos]['background']);
+            row.css('z-index', 100 - newpos);
+            row.find('div.place').html($savedData[newpos]['position']);
+            row.data('position', newpos);
+        }
+    }
+
     function moveRow(id, position) {
         var curRow = $('#row' + id);
         $('[data-position]').each(function(){
-            console.log($(this).css('top'));
-            if ($(this).css('top') == 40 * position + 'px') {
-                var buffTop = $(this).css('top');
-                $(this).css('top', curRow.css('top'));
-                curRow.css('top', buffTop);
+            //console.log($(this).css('top'));
+            if ($(this).data('position') == position) {
+            //if ($(this).css('top') == 40 * position + 'px') {
+                //var buffTop = $(this).css('top');
+                $(this).css('top', 40 * curRow.data('position') + 'px');
+                curRow.css('top', 40 * position + 'px');
                 var buffPlace = $(this).find('div.place').html();
                 $(this).find('div.place').html(curRow.find('div.place').html());
                 curRow.find('div.place').html(buffPlace);
@@ -141,12 +168,15 @@ $(function() {
             if (curRow.data('position') > 3) {
                 curRow.css('opacity', 0);
                 curRow.css('top', 40 * curRow.data('position') + 'px');
-                setTimeout(function(){
+                setTimeout(function () {
                     curRow.css('transition', 'opacity 1s linear');
                     curRow.css('opacity', 1);
                 }, 10);
             }
         });
+        setTimeout(function(){
+            refreshData();
+        }, 10000);
     }
 
     function pushRows() {
@@ -172,13 +202,43 @@ $(function() {
         }
         //curRow.css('top', 60 + 40 * position);
     }
-    setTimeout(function(){
+
+    function refreshData() {
+        $.ajax({
+            url: "?r=admin%2Fget-sells-json",
+            method: "POST",
+            data: {
+                _csrf : _csrf,
+                groupId : groupId,
+                period : period
+            },
+            dataType: "json",
+            success: function(data) {
+                // Обновляем данные
+                rebuildTable(data);
+                setTimeout(function(){
+                    pushRows();
+                }, 10000);
+            }
+        })
+    }
+
+    refreshData();
+
+/*    setTimeout(function(){
+        //refreshData();
+        moveRow(10, 2);
+    }, 2000);*/
+
+/*    setTimeout(function(){
         moveRow(5, 8);
     }, 1000);
-    /*    setTimeout(function(){
+    /!*    setTimeout(function(){
      moveRow(6, 2);
-     }, 3000);*/
+     }, 3000);*!/
     setTimeout(function(){
         pushRows();
-    }, 3000);
+    }, 3000);*/
+
+
 });

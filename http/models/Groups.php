@@ -18,6 +18,74 @@ class Groups extends ActiveRecord
     const PERSON_HEAD_OF_DEPARTMENT = 3;
     const PERSON_ADMIN = 4;
 
+    static public function randomFill()
+    {
+        $buff = self::getDb()->createCommand("
+            SELECT
+                `seller`
+            FROM
+                `sells`
+            WHERE
+                `date` = '2016-03-01'
+        ")->queryAll();
+        $ids = [];
+        $values = [100, 350, 500, 280, 700, 1203];
+        foreach ($buff as $item) {
+            $ids[] = $item['seller'];
+        }
+        self::getDb()->createCommand("
+            INSERT INTO
+                `sells`
+                (
+                  `value`,
+                  `date`,
+                  `seller`
+                )
+            VALUES
+                (
+                  '" . $values[array_rand($values, 1)] . "',
+                  '2016-03-01',
+                  " . $ids[array_rand($ids, 1)] . "
+                )
+            ON DUPLICATE KEY UPDATE
+                `value` = `value` + VALUES(`value`)
+        ")->execute();
+    }
+
+    static public function getSells($groupId = null, $period = null)
+    {
+        $where = [];
+        $cond = [];
+        if ($groupId) {
+            $where[] = "`relation`.`group` = :groupId";
+            $cond['groupId'] = $groupId;
+        }
+        if (!$period) {
+            $period = date('Y-m-01');
+        }
+        $where[] = "`sells`.`date` = :period";
+        $cond['period'] = $period;
+        return self::getDb()->createCommand("
+            SELECT
+                `person`.`id` AS `personId`,
+                `person`.`fio` AS `personName`,
+                `person`.`access_type` AS `personAccessType`,
+                `relation`.`group` AS `groupId`,
+                `sells`.`date` AS `sellsPeriod`,
+                `sells`.`value` AS `sellsValue`,
+                `groups`.`group_type` AS `groupType`
+            FROM
+                `relation`
+                LEFT JOIN `sells` ON `sells`.`seller` = `relation`.`person`
+                LEFT JOIN `person` ON `person`.`id` = `relation`.`person`
+                LEFT JOIN `groups` ON `groups`.`id` = `relation`.`group`
+            WHERE
+                " . implode(' AND ', $where) . "
+            ORDER BY
+                `sells`.`value` DESC
+        ", $cond)->queryAll();
+    }
+
     static public function getPlans($personId, $groupId)
     {
         return self::getDb()->createCommand("

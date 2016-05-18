@@ -86,7 +86,7 @@
                                         
                     $query_update = "update sells set value=" . $value . " where seller=" . $seller_id . " and date=\"" . $period . "\";";
                         
-                    $query_insert = "insert into sells (date, seller, value) values(\"" . $period . "\", " . $seller_id . ", " . $value . ");";
+                    $query_insert = "insert into `info_table`.`sells` (`date`, `seller`, `value`) values('" . $period . "', " . $seller_id . ", " . $value . ");";
                     
                     mysqli_query($info_mysqli, $query_update);
                     if (mysqli_affected_rows($info_mysqli) == 0) {
@@ -112,10 +112,12 @@
         $sellers = getSellers();
               
         while($row = mysqli_fetch_assoc($sellers)) {         
-            updateSales($row);
+		updateSales($row);
         } 
         mysqli_free_result($sellers); 
        
         closeConnections();
     }
+
+fetchData();
 ?>
