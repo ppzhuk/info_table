@@ -1,6 +1,7 @@
 html,
 body {
     height: 100%;
+    background-color: #ffffff !important;
 }
 
 .wrap {
@@ -111,15 +112,15 @@ a.desc:after {
 }
 
 .table-ratings .row:nth-child(2) {
-    background: #ffd700;
+    background: #01abe8;
 }
 
 .table-ratings .row:nth-child(3) {
-    background: #c0c0c0;
+    background: #05bcfe;
 }
 
 .table-ratings .row:nth-child(4) {
-    background: #cd7f32;
+    background: #1ec3fe;
 }
 
 .table-ratings div.row {
@@ -132,4 +133,8 @@ a.desc:after {
 .footer {
     position: relative;
     z-index: 100;
+}
+
+.head-line {
+    padding-top: 20px;
 }
