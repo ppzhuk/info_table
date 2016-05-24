@@ -144,6 +144,7 @@ class AdminController extends Controller
 
     public function actionSellsTable()
     {
+        Yii::$app->cache->flush();
         if ($this->checkAccess(__METHOD__) !== true) {
             return;
         }
@@ -159,7 +160,7 @@ class AdminController extends Controller
         $period = '2016-03-01';
         //var_dump($persons);
         if ($group[0]['groupType'] == 'seller') {
-            return $this->render('sellers-table', [
+            return $this->render('sellers-table-style2', [
                 'groupId' =>  $group[0]['groupId'],
                 'groupName' => $group[0]['groupName'],
                 'period' => $period,
