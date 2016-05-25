@@ -111,16 +111,31 @@ a.desc:after {
     height: 500px;
 }
 
+.table-ratings .row {
+    overflow: hidden;
+    font-weight: bold;
+    border: 1px solid #ffffff;
+}
+
 .table-ratings .row:nth-child(2) {
     background: #01abe8;
+    color: #00cc00;
+    font-size: 22px;
+    box-shadow: 0 0 10px #ffffff;
 }
 
 .table-ratings .row:nth-child(3) {
     background: #05bcfe;
+    color: #00cc00;
+    font-size: 20px;
+    box-shadow: 0 0 10px #ffffff;
 }
 
 .table-ratings .row:nth-child(4) {
     background: #1ec3fe;
+    color: #00cc00;
+    font-size: 18px;
+    box-shadow: 0 0 10px #ffffff;
 }
 
 .table-ratings div.row {
@@ -141,6 +156,15 @@ a.desc:after {
 
 body.style2 {
     background: #767f99 !important;
+    color: #ffffff;
+}
+
+.style2 a, .style2 button {
+    color: #faef1e;
+}
+
+.style2 a:hover, .style2 button:hover {
+    color: #faef1e;
 }
 
 .style2 .tbody {
@@ -161,6 +185,10 @@ body.style2 {
 
 .style2 .table-ratings .row:nth-child(4) {
     background: #767f99;
+}
+
+.style2 .footer {
+    display: none;
 }
 
 @media (min-width: 1470px) {

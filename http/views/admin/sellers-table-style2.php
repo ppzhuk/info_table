@@ -34,13 +34,15 @@ $this->title = 'Список групп';
                 </div>
             </div>
             <div class="row">
-                <h2 align="center"><?=$groupName; ?></h2>
+                <h2 align="center">Исполнение планов доходов за <?=$periodText; ?></h2>
+                <h4 align="center">"<?=$groupName; ?>"</h4>
                 <div class="table table-ratings">
                     <div class="row thead">
                         <div class="col-lg-1 col-md-1 col-sm-1" style="text-align: center">Место</div>
                         <div class="col-lg-5 col-md-5 col-sm-5">Полное имя</div>
-                        <div class="col-lg-3 col-md-3 col-sm-3">Доход за месяц</div>
-                        <div class="col-lg-3 col-md-3 col-sm-3">План за месяц</div>
+                        <div class="col-lg-2 col-md-2 col-sm-2">Доход за месяц</div>
+                        <div class="col-lg-2 col-md-2 col-sm-2">План за месяц</div>
+                        <div class="col-lg-2 col-md-2 col-sm-2">Доход за год</div>
                     </div>
                     <?php
                     $place = 1;
@@ -59,8 +61,9 @@ $this->title = 'Список групп';
                         <div class="row tbody" data-position="<?=$place; ?>" id="row<?=$sell['personId']; ?>" style="top: <?=$offset + $step*$place; ?>px; z-index: <?=99-$place; ?>">
                             <div class="place col-lg-1 col-md-1 col-sm-1" style="text-align: center"><?=$placeHtml; ?></div>
                             <div class="col-lg-5 col-md-5 col-sm-5"><?=$sell['personName']; ?></div>
-                            <div class="sells-value col-lg-3 col-md-3 col-sm-3"><?=$sell['sellsValue']; ?></div>
-                            <div class="sells-plan col-lg-3 col-md-3 col-sm-3">0</div>
+                            <div class="sells-value col-lg-2 col-md-2 col-sm-2"><?=number_format($sell['sellsValue'], 2, '.', ' '); ?></div>
+                            <div class="sells-plan col-lg-2 col-md-2 col-sm-2">0</div>
+                            <div class="sells-year-value col-lg-2 col-md-2 col-sm-2"><?=number_format($sell['yearValue'], 2, '.', ' '); ?></div>
                         </div>
                         <?php $place++; ?>
                     <?php endforeach; ?>

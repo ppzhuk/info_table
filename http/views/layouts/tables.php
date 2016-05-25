@@ -11,7 +11,7 @@ use app\assets\AppAsset;
 
 AppAsset::register($this);
 
-$styles = ['style1', 'style2'];
+$styles = ['style2', 'style1'];
 $curStyle = intval(Yii::$app->request->get('style'));
 $styleName = isset($styles[$curStyle]) ? $styles[$curStyle] : null;
 

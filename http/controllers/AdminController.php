@@ -36,6 +36,21 @@ class AdminController extends Controller
         'app\controllers\AdminController::actionCreateUser' => [4],
     ];
 
+    private $monthList = [
+        ['январь'],
+        ['февраль'],
+        ['март'],
+        ['апрель'],
+        ['май'],
+        ['июнь'],
+        ['июль'],
+        ['август'],
+        ['сентябрь'],
+        ['октябрь'],
+        ['ноябрь'],
+        ['декабрь'],
+    ];
+
     public function behaviors()
     {
         return [
@@ -164,6 +179,7 @@ class AdminController extends Controller
                 'groupId' =>  $group[0]['groupId'],
                 'groupName' => $group[0]['groupName'],
                 'period' => $period,
+                'periodText' => $this->monthList[intval(date('m'))][0] . date(' Y'),
                 'sells' => Groups::getSells($group[0]['groupId'], $period)
             ]);
         }
@@ -291,7 +307,9 @@ class AdminController extends Controller
         $id = Yii::$app->request->post('groupId');
         $period = Yii::$app->request->post('period');
         $data = Groups::getSells($id, $period);
-
+        foreach ($data as $key => $rec) {
+            $data[$key]['sellsValue'] = number_format($rec['sellsValue'], 2, '.', ' ');
+        }
         echo json_encode($data);
         exit;
     }

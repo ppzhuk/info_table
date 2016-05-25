@@ -65,7 +65,7 @@ class Groups extends ActiveRecord
         }
         $where[] = "`sells`.`date` = :period";
         $cond['period'] = $period;
-        return self::getDb()->createCommand("
+        $forRet = self::getDb()->createCommand("
             SELECT
                 `person`.`id` AS `personId`,
                 `person`.`fio` AS `personName`,
@@ -73,17 +73,31 @@ class Groups extends ActiveRecord
                 `relation`.`group` AS `groupId`,
                 `sells`.`date` AS `sellsPeriod`,
                 `sells`.`value` AS `sellsValue`,
-                `groups`.`group_type` AS `groupType`
+                `groups`.`group_type` AS `groupType`,
+                `ai`.`yearValue` AS `yearValue`
             FROM
                 `relation`
                 LEFT JOIN `sells` ON `sells`.`seller` = `relation`.`person`
                 LEFT JOIN `person` ON `person`.`id` = `relation`.`person`
                 LEFT JOIN `groups` ON `groups`.`id` = `relation`.`group`
+                LEFT JOIN (
+                    SELECT
+                        SUM(`value`) AS `yearValue`,
+                        `sells`.`seller` AS `seller`
+                    FROM
+                        `sells`
+                    WHERE
+                        SUBSTRING(`sells`.`date`, 1, 4) = SUBSTRING(:period, 1, 4)
+                    GROUP BY
+                        `sells`.`seller`
+                ) AS `ai` ON `ai`.`seller` = `relation`.`person`
             WHERE
                 " . implode(' AND ', $where) . "
             ORDER BY
                 `sells`.`value` DESC
-        ", $cond)->queryAll();
+        ", $cond);
+        //var_dump($forRet->getRawSql()); die;
+        return $forRet->queryAll();
     }
 
     static public function getPlans($personId, $groupId)
