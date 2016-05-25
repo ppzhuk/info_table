@@ -102,13 +102,15 @@ class Groups extends ActiveRecord
 
     static public function getPlans($personId, $groupId)
     {
-        return self::getDb()->createCommand("
+        $forRet = self::getDb()->createCommand("
             SELECT
                 `p`.`id` AS `idPerson`,
                 `p`.`fio` AS `fioPerson`,
                 `p`.`login` AS `loginPerson`,
                 `p`.`access_type` AS `accessType`,
-                `at`.`name` AS `accessTypeName`
+                `at`.`name` AS `accessTypeName`,
+                `pl`.`monthly` AS `monthly`,
+                `pl`.`quarterly` AS `quarterly`
             FROM
               `person` AS `p`
               LEFT JOIN `access_type` AS `at` ON `at`.`id` = `p`.`access_type`
@@ -116,7 +118,10 @@ class Groups extends ActiveRecord
             WHERE
               `p`.`id` = :personId AND
               `pl`.`groups_id` = :groupId
-        ", ['personId' => $personId, 'groupId' => $groupId])->queryAll();
+        ", ['personId' => $personId, 'groupId' => $groupId]);
+
+        //var_dump($forRet->getRawSql()); die;
+        return $forRet->queryAll();
     }
 
     static public function setPlans($personId, $groupId, $data)

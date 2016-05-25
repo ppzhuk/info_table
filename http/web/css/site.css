@@ -154,6 +154,21 @@ a.desc:after {
     padding-top: 20px;
 }
 
+div.alert {
+    position: fixed;
+    z-index: 99999;
+    width: 100%;
+    top: 0px;
+    opacity: 0;
+    transition: opacity 1s linear;
+    box-shadow: 0 0 10px #000;
+}
+
+
+div.alert.show {
+    opacity: 1;
+}
+
 body.style2 {
     background: #767f99 !important;
     color: #ffffff;

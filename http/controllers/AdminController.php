@@ -298,6 +298,18 @@ class AdminController extends Controller
         exit;
     }
 
+    public function actionGetSellerPlanJson()
+    {
+        $groupId = Yii::$app->request->post('groupId');
+        $personId = Yii::$app->request->post('personId');
+        $data = Groups::getPlans($personId, $groupId);
+/*        foreach ($data as $key => $rec) {
+            $data[$key]['sellsValue'] = number_format($rec['sellsValue'], 2, '.', ' ');
+        }*/
+        echo json_encode($data);
+        exit;
+    }
+
     public function actionGetSellsJson()
     {
         Groups::randomFill();

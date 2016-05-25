@@ -26,6 +26,18 @@ AppAsset::register($this);
     <?php $this->beginBody() ?>
 
     <div class="wrap">
+        <div class="row">
+            <div class="col-md-12">
+                <h2>Alerts</h2>
+
+                <div class="bs-component">
+                    <div id="main-alert" class="alert alert-dismissible">
+                        <h4 id="alert-title"></h4>
+                        <p id="alert-content"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
         <?php
         //var_dump(Yii::$app->user->isGuest); die;
         NavBar::begin([

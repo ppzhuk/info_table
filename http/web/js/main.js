@@ -2,6 +2,10 @@
  * Created by bodrik on 08.05.16.
  */
 $(function() {
+    var fixedValues = {
+        'quarterlyPlan': '',
+        'monthlyPlan': ''
+    }
     $.material.init();
 
     $('[data-targetframe]').on('click', function() {
@@ -41,6 +45,70 @@ $(function() {
     $('[data-targetframe="editUser"]').click(function(){
         refreshFormEditUser($('#select-personId').find('option:selected').val());
     });
+
+    $('[name="membersGroup[]"]').click(function() {
+        var userId = Number($(this).val());
+        if (/^\d+$/ig.test(userId)) {
+            $.ajax({
+                url: "?r=admin%2Fget-seller-plan-json",
+                method: "POST",
+                data: {
+                    _csrf: _csrf,
+                    personId: userId,
+                    groupId: $('input[name="groupId"]').val()
+                },
+                dataType: "json",
+                success: function (data) {
+                    var frame = $('[data-frame="frame1"]');
+                    frame.find('[name="monthlyPlan"]').val('');
+                    frame.find('[name="quarterlyPlan"]').val('');
+                    if ($.isEmptyObject(data)) {
+                        return true;
+                    }
+                    // Заполняем форму
+                    fixedValues['userId'] = data[0].idPerson;
+                    fixedValues['monthlyPlan'] = data[0].monthly;
+                    fixedValues['quarterlyPlan'] = data[0].quarterly;
+                    frame.find('[name="monthlyPlan"]').val(fixedValues['monthlyPlan']);
+                    frame.find('[name="quarterlyPlan"]').val(fixedValues['quarterlyPlan']);
+/*                    frame.find('[name="nameUser"]').val(data[0].fioPerson);
+                    frame.find('select[name="accessType"] option').each(function () {
+                        if ($(this).val() == data[0].accessType) {
+                            $(this).prop('selected', true);
+                        }
+                    });*/
+                }
+            });
+        }
+    });
+
+    $('[name="monthlyPlan"]').on('change, keyup', function() {
+        if (fixedValues['monthlyPlan'] == $(this).val()) {
+            $('input.lockable, .lockable input, .lockable button, .lockable select').removeAttr("disabled");
+            hideAlert();
+        } else {
+            $('input.lockable, .lockable input, .lockable button, .lockable select').attr('disabled', 'true');
+            var content = 'Для того, чтобы сохранить изменения планов и перейти к редактированию группы, нажмите кнопку: <input type="button" class="btn btn-link btn-sm" onclick="savePlan(' + fixedValues['userId'] + ', ' + $('input[name="groupId"]').val() + ')" value="Сохранить"/>'
+            showAlert('Сохранение изменений планов', content, 'alert-info');
+        }
+    });
+
+    function showAlert(title, content, style)
+    {
+        $('#main-alert').removeClass('alert-info');
+        $('#main-alert').removeClass('alert-success');
+        $('#main-alert').removeClass('alert-danger');
+        style = style || 'alert-info';
+        $('#main-alert').addClass(style);
+        $('#alert-title').html(title);
+        $('#alert-content').html(content);
+        $('#main-alert').addClass('show');
+    }
+
+    function hideAlert()
+    {
+        $('#main-alert').removeClass('show');
+    }
 
     function refreshFormEditUser(userId)
     {

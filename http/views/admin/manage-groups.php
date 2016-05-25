@@ -20,21 +20,21 @@ $this->title = 'Редактирование групп';
                     <input type="hidden" name="groupId" value="0" />
                     <fieldset>
                         <legend>Редактирование группы</legend>
-                        <div class="form-group">
+                        <div class="form-group lockable">
                             <label class="col-md-2 control-label">Тип группы</label>
 
                             <label class="col-md-10 form-label" name="typeGroup">
                                 -
                             </label>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group lockable">
                             <label for="nameGroup" class="col-md-2 control-label">Имя группы</label>
 
                             <div class="col-md-10">
                                 <input type="text" name="nameGroup" class="form-control" placeholder="навзвание группы">
                             </div>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group lockable">
                             <label for="inputEmail" class="col-md-2 control-label">Сотрудники</label>
 
                             <div class="col-md-10">
@@ -67,15 +67,8 @@ $this->title = 'Редактирование групп';
                                     <input type="text" name="quarterlyPlan" class="form-control" placeholder="0.00">
                                 </div>
                         </div>
-                        <div class="form-group">
-                            <label for="inputEmail" class="col-md-2 control-label">Годовой план</label>
-
-                                <div class="col-md-10">
-                                    <input type="text" name="annualPlan" class="form-control" placeholder="0.00">
-                                </div>
-                        </div>
                         <a data-targetframe="frame0" class="btn btn-default btn-sm">Отмена</a>
-                        <input type="submit" class="btn btn-primary btn-sm" value="Сохранить"/>
+                        <input type="submit" class="btn btn-primary btn-sm lockable" value="Сохранить"/>
                     </fieldset>
                 </form>
                 <form data-frame="frame2" class="form-horizontal hide" method="post" action="?r=admin%2Fcreate-group">
