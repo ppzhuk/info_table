@@ -185,7 +185,11 @@ class AdminController extends Controller
         }
         if ($group[0]['groupType'] == 'KAM') {
             return $this->render('kam-table', [
-                'groupId' =>  $group[0]['groupId']
+                'groupId' =>  $group[0]['groupId'],
+                'groupName' => $group[0]['groupName'],
+                'period' => $period,
+                'periodText' => $this->monthList[intval(date('m'))][0] . date(' Y'),
+                'sells' => Groups::getSells($group[0]['groupId'], $period)
             ]);
         }
         throw new Exception('Что-то пошло не так.');
@@ -267,6 +271,14 @@ class AdminController extends Controller
     }
 
     // Далее идут ajax функции
+    public function actionSavePlanJson()
+    {
+        //$id = Yii::$app->request->post('groupId');
+        $data = ['code' => -1];
+        echo json_encode($data);
+        exit;
+    }
+
     public function actionGetGroupJson()
     {
         if ($this->checkAccess(__METHOD__, false) !== true) {
@@ -276,10 +288,13 @@ class AdminController extends Controller
         $data = Groups::getGroups($id);
         $data['members'] = Groups::getPersons($id, Groups::PERSON_SELLER);
         $data['otherPersons'] = array_udiff(Groups::getPersons(null, Groups::PERSON_SELLER), $data['members'], function($a, $b) {
-            if ($a == $b) {
+            if ($a['personId'] == $b['personId']) {
                 return 0;
+            } elseif ($a['personId'] < $b['personId']) {
+                return -1;
+            } elseif ($a['personId'] > $b['personId']) {
+                return 1;
             }
-            return -1;
         });
 
         echo json_encode($data);

@@ -13,7 +13,7 @@ $this->title = 'Редактирование групп';
 <div class="container">
     <div class="row">
         <div class="col-lg-12 col-md-12 col-sm-12">
-            <form class="jumbotron">
+            <form class="jumbotron" style="color: #000000">
                 <h2>Таблица доходов</h2>
                 <form class="form-horizontal" method="get" action="">
                     <input type="hidden" name="r" value="admin/sells-table"/>

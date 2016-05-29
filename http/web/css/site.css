@@ -1,6 +1,6 @@
 html,
 body {
-    height: 100%;
+    height: 200%;
     background-color: #ffffff !important;
 }
 
@@ -119,22 +119,19 @@ a.desc:after {
 
 .table-ratings .row:nth-child(2) {
     background: #01abe8;
-    color: #00cc00;
-    font-size: 22px;
+    /*font-size: 22px;*/
     box-shadow: 0 0 10px #ffffff;
 }
 
 .table-ratings .row:nth-child(3) {
     background: #05bcfe;
-    color: #00cc00;
-    font-size: 20px;
+    /*font-size: 20px;*/
     box-shadow: 0 0 10px #ffffff;
 }
 
 .table-ratings .row:nth-child(4) {
     background: #1ec3fe;
-    color: #00cc00;
-    font-size: 18px;
+    /*font-size: 18px;*/
     box-shadow: 0 0 10px #ffffff;
 }
 
@@ -162,11 +159,13 @@ div.alert {
     opacity: 0;
     transition: opacity 1s linear;
     box-shadow: 0 0 10px #000;
+    display: none;
 }
 
 
 div.alert.show {
     opacity: 1;
+    display: inline;
 }
 
 body.style2 {
@@ -207,6 +206,9 @@ body.style2 {
 }
 
 @media (min-width: 1470px) {
+    body {
+        overflow: hidden;
+    }
     .container {
         width: calc(100% - 100px);
         font-size: 26px;

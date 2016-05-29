@@ -83,15 +83,73 @@ $(function() {
     });
 
     $('[name="monthlyPlan"]').on('change, keyup', function() {
-        if (fixedValues['monthlyPlan'] == $(this).val()) {
+        verifyPlan(fixedValues['monthlyPlan'], this);
+    });
+
+    $('[name="quarterlyPlan"]').on('change, keyup', function() {
+        verifyPlan(fixedValues['quarterlyPlan'], this);
+    });
+
+    $('body').delegate('#btn-save-plan', 'click', function() {
+        var frame = $('[data-frame="frame1"]');
+        var monthly = frame.find('[name="monthlyPlan"]').val();
+        var quarterly = frame.find('[name="quarterlyPlan"]').val();
+        savePlan(fixedValues['userId'], monthly, quarterly);
+    });
+
+    $('body').delegate('#btn-revert-plan', 'click', function() {
+        revertPlan(fixedValues['userId'], $('input[name="groupId"]').val());
+    });
+
+    function verifyPlan(strComparePlan, obj)
+    {
+        if (strComparePlan == $(obj).val()) {
             $('input.lockable, .lockable input, .lockable button, .lockable select').removeAttr("disabled");
             hideAlert();
         } else {
             $('input.lockable, .lockable input, .lockable button, .lockable select').attr('disabled', 'true');
-            var content = 'Для того, чтобы сохранить изменения планов и перейти к редактированию группы, нажмите кнопку: <input type="button" class="btn btn-link btn-sm" onclick="savePlan(' + fixedValues['userId'] + ', ' + $('input[name="groupId"]').val() + ')" value="Сохранить"/>'
+            var content = 'Для того, чтобы сохранить изменения планов и перейти к редактированию группы, нажмите кнопку: ' +
+                '<input type="button" id="btn-save-plan" class="btn btn-link btn-sm" value="Сохранить"/>' +
+                '<br/>Для того, чтобы вернуть исходные значения планов и перейти к редактированию группы, нажмите кнопку: ' +
+                '<input type="button" id="btn-revert-plan" class="btn btn-link btn-sm" value="Отмена"/>';
             showAlert('Сохранение изменений планов', content, 'alert-info');
         }
-    });
+    }
+
+    function revertPlan()
+    {
+        var frame = $('[data-frame="frame1"]');
+        frame.find('[name="monthlyPlan"]').val(fixedValues['monthlyPlan']);
+        frame.find('[name="quarterlyPlan"]').val(fixedValues['quarterlyPlan']);
+        $('input.lockable, .lockable input, .lockable button, .lockable select').removeAttr("disabled");
+        hideAlert();
+    }
+
+    function savePlan(userId, monthly, quarterly)
+    {
+        $.ajax({
+            url: "?r=admin%2Fsave-plan-json",
+            method: "POST",
+            data: {
+                _csrf: _csrf,
+                personId: userId,
+                groupId: $('input[name="groupId"]').val(),
+                monthlyValue: monthly,
+                quarterlyValue: quarterly
+            },
+            dataType: "json",
+            success: function (data) {
+                if (!data.code) {
+                    showAlert('Статус действия', 'Обновление планов произошло успешно', 'alert-success');
+                } else {
+                    showAlert('Статус действия', 'Упс... что-то пошло не так', 'alert-danger');
+                }
+                setTimeout(function() {
+                    hideAlert();
+                }, 3000);
+            }
+        });
+    }
 
     function showAlert(title, content, style)
     {
@@ -189,15 +247,19 @@ $(function() {
             $(this).css('transition', 'top 1s cubic-bezier(0, 0, 1, 1), background 1s linear');
             $savedData[$(this).data('position')] = {
                 'position' : $(this).find('div.place').html(),
-                'background' : $(this).css('background')
+                'background' : $(this).css('background'),
+                'font-size' : $(this).css('font-size'),
+                'box-shadow' : $(this).css('box-shadow')
             }
         });
         for (i in data) {
             var row = $('#row' + data[i].personId);
             var newpos = Number(i) + 1;
             row.find('.sells-value').html(data[i].sellsValue);
-            row.css('top', 40 * newpos + 'px');
+            row.css('top', offset + 40 * newpos + 'px');
             row.css('background', $savedData[newpos]['background']);
+            row.css('font-size', $savedData[newpos]['font-size']);
+            row.css('box-shadow', $savedData[newpos]['box-shadow']);
             row.css('z-index', 100 - newpos);
             row.find('div.place').html($savedData[newpos]['position']);
             row.data('position', newpos);
@@ -211,8 +273,8 @@ $(function() {
             if ($(this).data('position') == position) {
             //if ($(this).css('top') == 40 * position + 'px') {
                 //var buffTop = $(this).css('top');
-                $(this).css('top', 40 * curRow.data('position') + 'px');
-                curRow.css('top', 40 * position + 'px');
+                $(this).css('top', offset + 40 * curRow.data('position') + 'px');
+                curRow.css('top', offset + 40 * position + 'px');
                 var buffPlace = $(this).find('div.place').html();
                 $(this).find('div.place').html(curRow.find('div.place').html());
                 curRow.find('div.place').html(buffPlace);
@@ -235,7 +297,7 @@ $(function() {
             var curRow = $(this);
             if (curRow.data('position') > 3) {
                 curRow.css('opacity', 0);
-                curRow.css('top', 40 * curRow.data('position') + 'px');
+                curRow.css('top', offset + 40 * curRow.data('position') + 'px');
                 setTimeout(function () {
                     curRow.css('transition', 'opacity 1s linear');
                     curRow.css('opacity', 1);
@@ -253,7 +315,7 @@ $(function() {
             console.log($(this).css('top'));
             if ($(this).data('position') > 3) {
                 $(this).css('transition', 'top 2s linear');
-                if ($(this).css('top') > '120px') {
+                if ($(this).css('top') > (offset + 120) + 'px') {
                     counter++;
                     $(this).css('top', '-=40');
                 }
@@ -284,9 +346,19 @@ $(function() {
             success: function(data) {
                 // Обновляем данные
                 rebuildTable(data);
-                setTimeout(function(){
-                    pushRows();
-                }, 10000);
+                var winHeight = $(window).height();
+                var lastRowTop = $('[data-position="' + $('[data-position]').size() + '"]').offset().top;
+                var lastRowTHeight = $('[data-position="' + $('[data-position]').size() + '"]').height();
+                //console.log(lastRowTHeight);
+                if (lastRowTop + lastRowTHeight > winHeight) {
+                    setTimeout(function(){
+                        pushRows();
+                    }, 10000);
+                } else {
+                    setTimeout(function(){
+                        refreshData();
+                    }, 10000);
+                }
             }
         })
     }

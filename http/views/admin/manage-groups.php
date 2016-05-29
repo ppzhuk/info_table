@@ -57,14 +57,14 @@ $this->title = 'Редактирование групп';
                             <label for="inputEmail" class="col-md-2 control-label">Ежемесячный план</label>
 
                             <div class="col-md-10">
-                                <input type="text" name="monthlyPlan" class="form-control" placeholder="0.00">
+                                <input type="number" name="monthlyPlan" class="form-control" placeholder="0.00">
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="inputEmail" class="col-md-2 control-label">Квартальный план</label>
 
                                 <div class="col-md-10">
-                                    <input type="text" name="quarterlyPlan" class="form-control" placeholder="0.00">
+                                    <input type="number" name="quarterlyPlan" class="form-control" placeholder="0.00">
                                 </div>
                         </div>
                         <a data-targetframe="frame0" class="btn btn-default btn-sm">Отмена</a>

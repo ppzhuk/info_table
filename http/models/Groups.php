@@ -74,12 +74,15 @@ class Groups extends ActiveRecord
                 `sells`.`date` AS `sellsPeriod`,
                 `sells`.`value` AS `sellsValue`,
                 `groups`.`group_type` AS `groupType`,
-                `ai`.`yearValue` AS `yearValue`
+                `ai`.`yearValue` AS `yearValue`,
+                `plans`.`monthly` AS `monthly`,
+                `plans`.`quarterly` AS `quarterly`
             FROM
                 `relation`
                 LEFT JOIN `sells` ON `sells`.`seller` = `relation`.`person`
                 LEFT JOIN `person` ON `person`.`id` = `relation`.`person`
                 LEFT JOIN `groups` ON `groups`.`id` = `relation`.`group`
+                LEFT JOIN `plans` ON `plans`.`seller_id` = `relation`.`person` AND `plans`.`groups_id` = `relation`.`group`
                 LEFT JOIN (
                     SELECT
                         SUM(`value`) AS `yearValue`,
@@ -94,7 +97,8 @@ class Groups extends ActiveRecord
             WHERE
                 " . implode(' AND ', $where) . "
             ORDER BY
-                `sells`.`value` DESC
+                `sells`.`value` DESC,
+                `person`.`fio` ASC
         ", $cond);
         //var_dump($forRet->getRawSql()); die;
         return $forRet->queryAll();
