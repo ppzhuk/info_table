@@ -20,13 +20,15 @@ class AppAsset extends AssetBundle
     public $css = [
         'css/site.css',
         'css/bootstrap-material-design.min.css',
-        'css/ripples.min.css'
+        'css/ripples.min.css',
+        'css/jquery-ui.css'
     ];
     public $js = [
         'js/material.min.js',
         'js/ripples.min.js',
         'js/material.min.js',
-        'js/main.js'
+        'js/jquery-ui.js',
+        'js/autocompleter.js'
     ];
     public $depends = [
         'yii\web\YiiAsset',

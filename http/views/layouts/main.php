@@ -53,7 +53,7 @@ AppAsset::register($this);
             case 3: {
                 $items[] = ['label' => 'Пользователи', 'url' => ['/admin/manage-users']];
                 $items[] = ['label' => 'Группы', 'url' => ['/admin/manage-groups']];
-                $items[] = ['label' => 'Правки', 'url' => ['/admin/edits']];
+                $items[] = ['label' => 'Правки', 'url' => ['/admin/calibration']];
                 $items[] = ['label' => 'Графики', 'url' => ['/admin/charts']];
             }
             case 2: {

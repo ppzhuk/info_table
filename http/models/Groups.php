@@ -18,6 +18,21 @@ class Groups extends ActiveRecord
     const PERSON_HEAD_OF_DEPARTMENT = 3;
     const PERSON_ADMIN = 4;
 
+    static public $monthNames = [
+        'Январь',
+        'Февраль',
+        'Март',
+        'Апрель',
+        'Май',
+        'Июнь',
+        'Июль',
+        'Август',
+        'Сентябрь',
+        'Октябрь',
+        'Ноябрь',
+        'Декабрь',
+    ];
+
     static public function randomFill()
     {
         $buff = self::getDb()->createCommand("
@@ -65,6 +80,14 @@ class Groups extends ActiveRecord
         }
         $where[] = "`sells`.`date` = :period";
         $cond['period'] = $period;
+        $startMonth = intval(substr($period, 6, 2));
+        $startMonth -= ($startMonth - 1) % 3;
+        for ($i = 0; $i < 3; $i++) {
+            $cond['month' . $i] = $startMonth + $i;
+            if (strlen($cond['month' . $i] ) == 1) {
+                $cond['month' . $i]  = '0' . $cond['month' . $i] ;
+            }
+        }
         $forRet = self::getDb()->createCommand("
             SELECT
                 `person`.`id` AS `personId`,
@@ -75,6 +98,9 @@ class Groups extends ActiveRecord
                 `sells`.`value` AS `sellsValue`,
                 `groups`.`group_type` AS `groupType`,
                 `ai`.`yearValue` AS `yearValue`,
+                `ai`.`monthValue1` AS `monthValue1`,
+                `ai`.`monthValue2` AS `monthValue2`,
+                `ai`.`monthValue3` AS `monthValue3`,
                 `plans`.`monthly` AS `monthly`,
                 `plans`.`quarterly` AS `quarterly`
             FROM
@@ -85,6 +111,9 @@ class Groups extends ActiveRecord
                 LEFT JOIN `plans` ON `plans`.`seller_id` = `relation`.`person` AND `plans`.`groups_id` = `relation`.`group`
                 LEFT JOIN (
                     SELECT
+                        SUM(IF(SUBSTRING(`sells`.`date`, 6, 2) = :month0, `value`, 0)) AS `monthValue1`,
+                        SUM(IF(SUBSTRING(`sells`.`date`, 6, 2) = :month1, `value`, 0)) AS `monthValue2`,
+                        SUM(IF(SUBSTRING(`sells`.`date`, 6, 2) = :month2, `value`, 0)) AS `monthValue3`,
                         SUM(`value`) AS `yearValue`,
                         `sells`.`seller` AS `seller`
                     FROM

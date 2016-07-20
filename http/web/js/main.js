@@ -256,6 +256,13 @@ $(function() {
             var row = $('#row' + data[i].personId);
             var newpos = Number(i) + 1;
             row.find('.sells-value').html(data[i].sellsValue);
+            row.find('.sells-month1-value').html(data[i].monthValue1);
+            row.find('.sells-month2-value').html(data[i].monthValue2);
+            row.find('.sells-month3-value').html(data[i].monthValue3);
+            row.find('.sells-month4-value').html(data[i].monthValue3);
+            row.find('.sells-year-value').html(data[i].yearValue);
+            row.find('.sells-plan-quarterly').html(data[i].quarterly);
+            row.find('.sells-plan-monthly').html(data[i].monthly);
             row.css('top', offset + 40 * newpos + 'px');
             row.css('background', $savedData[newpos]['background']);
             row.css('font-size', $savedData[newpos]['font-size']);

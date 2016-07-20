@@ -39,21 +39,21 @@ $offset = 40;
             </div>
             <div class="row">
                 <h2 align="center">Исполнение планов доходов за <?=$periodText; ?></h2>
-                <h4 align="center">"<?=$groupName; ?>"</h4>
+                <h4 align="center"><?=$groupName; ?></h4>
                 <div class="table table-ratings">
                     <div class="row thead">
-                        <div class="col-lg-1 col-md-1 col-sm-1" style="text-align: center">Место</div>
-                        <div class="col-lg-5 col-md-5 col-sm-5" >Полное имя</div>
+                        <div class="col-lg-1 col-md-1 col-sm-1" style="text-align: center">Рейтинг</div>
+                        <div class="col-lg-5 col-md-5 col-sm-5" >ФИО</div>
                         <div class="col-lg-5 col-md-5 col-sm-5" style="border: 1px solid #ffffff;">
                             <div>
                                 <div class="col-lg-12 col-md-12 col-sm-12" style="text-align: center">Квартал</div>
                             </div>
                             <div>
+                                <div class="col-lg-2 col-md-2 col-sm-2"><?=$monthNames[0]; ?></div>
+                                <div class="col-lg-2 col-md-2 col-sm-2"><?=$monthNames[1]; ?></div>
+                                <div class="col-lg-2 col-md-2 col-sm-2"><?=$monthNames[2]; ?></div>
                                 <div class="col-lg-3 col-md-3 col-sm-3">Доход</div>
                                 <div class="col-lg-3 col-md-3 col-sm-3">План</div>
-                                <div class="col-lg-2 col-md-2 col-sm-2">месяц</div>
-                                <div class="col-lg-2 col-md-2 col-sm-2">месяц</div>
-                                <div class="col-lg-2 col-md-2 col-sm-2">месяц</div>
                             </div>
                         </div>
                         <div class="col-lg-1 col-md-1 col-sm-1">Доход за год</div>
@@ -70,9 +70,14 @@ $offset = 40;
                         <div class="row tbody" data-position="<?=$place; ?>" id="row<?=$sell['personId']; ?>" style="top: <?=$offset + $step*$place; ?>px; z-index: <?=99-$place; ?>">
                             <div class="place col-lg-1 col-md-1 col-sm-1" style="text-align: center"><?=$placeHtml; ?></div>
                             <div class="col-lg-5 col-md-5 col-sm-5"><?=$sell['personName']; ?></div>
-                            <div class="sells-value col-lg-1 col-md-1 col-sm-1"><?=number_format($sell['sellsValue'], 2, '.', ' '); ?></div>
-                            <div class="sells-plan col-lg-1 col-md-1 col-sm-1"><?=number_format($sell['monthly'], 2, '.', ' '); ?></div>
-                            <div class="sells-year-value col-lg-1 col-md-1 col-sm-1"><?=number_format($sell['yearValue'], 2, '.', ' '); ?></div>
+                            <div class="col-lg-5 col-md-5 col-sm-5" style="border-left: 1px solid #ffffff; border-right: 1px solid #ffffff;">
+                                <div class="sells-month1-value col-lg-2 col-md-2 col-sm-2"><?=number_format($sell['monthValue1'], 0, '.', ' '); ?></div>
+                                <div class="sells-month2-value col-lg-2 col-md-2 col-sm-2"><?=number_format($sell['monthValue2'], 0, '.', ' '); ?></div>
+                                <div class="sells-month3-value col-lg-2 col-md-2 col-sm-2"><?=number_format($sell['monthValue3'], 0, '.', ' '); ?></div>
+                                <div class="sells-value col-lg-3 col-md-3 col-sm-3"><?=number_format($sell['sellsValue'], 0, '.', ' '); ?></div>
+                                <div class="sells-plan-quarterly col-lg-3 col-md-3 col-sm-3"><?=number_format($sell['quarterly'], 0, '.', ' '); ?></div>
+                            </div>
+                            <div class="sells-year-value col-lg-1 col-md-1 col-sm-1"><?=number_format($sell['yearValue'], 0, '.', ' '); ?></div>
                         </div>
                         <?php $place++; ?>
                     <?php endforeach; ?>

@@ -62,7 +62,7 @@ $offset = 0;
                             <div class="place col-lg-1 col-md-1 col-sm-1" style="text-align: center"><?=$placeHtml; ?></div>
                             <div class="col-lg-5 col-md-5 col-sm-5"><?=$sell['personName']; ?></div>
                             <div class="sells-value col-lg-2 col-md-2 col-sm-2"><?=number_format($sell['sellsValue'], 2, '.', ' '); ?></div>
-                            <div class="sells-plan col-lg-2 col-md-2 col-sm-2"><?=number_format($sell['monthly'], 2, '.', ' '); ?></div>
+                            <div class="sells-plan-monthly col-lg-2 col-md-2 col-sm-2"><?=number_format($sell['monthly'], 2, '.', ' '); ?></div>
                             <div class="sells-year-value col-lg-2 col-md-2 col-sm-2"><?=number_format($sell['yearValue'], 2, '.', ' '); ?></div>
                         </div>
                         <?php $place++; ?>

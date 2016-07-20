@@ -25,6 +25,7 @@ class AdminController extends Controller
         'app\controllers\AdminController::actionIndex' => [2, 3, 4],
         'app\controllers\AdminController::actionManageUsers' => [4],
         'app\controllers\AdminController::actionManageGroups' => [2, 4],
+        'app\controllers\AdminController::actionCalibration' => [2, 3, 4],
         'app\controllers\AdminController::actionSellsTable' => [1, 2, 3, 4],
 
         'app\controllers\AdminController::actionGetUserJson' => [1, 2, 3, 4],
@@ -157,6 +158,28 @@ class AdminController extends Controller
         ]);
     }
 
+    public function actionCalibration()
+    {
+        if ($this->checkAccess(__METHOD__) !== true) {
+            return;
+        }
+        $groups = Groups::getGroups();
+        $autocomplitePersons = [];
+        foreach ($groups as $group) {
+            $persons = Groups::getPersons($group['groupId'], Groups::PERSON_SELLER);
+            foreach ($persons as $person) {
+                $autocomplitePersons[] = [
+                    'label' => $person['personName'] . ' из группы: ' . $group['groupName'] . '(' . $group['groupId'] . ')',
+                    'personId' => $person['personId'],
+                    'groupId' => $group['groupId'],
+                ];
+            }
+        }
+        return $this->render('calibration-table', [
+            'personsAutocomplite' => $autocomplitePersons
+        ]);
+    }
+
     public function actionSellsTable()
     {
         Yii::$app->cache->flush();
@@ -171,9 +194,13 @@ class AdminController extends Controller
                 'groups' => Groups::getGroups()
             ]);
         }
-        //$persons = Groups::getPersons($group[0]['groupId'], Groups::PERSON_SELLER);
         $period = '2016-03-01';
-        //var_dump($persons);
+        $startMonth = intval(substr($period, 6, 2));
+        $startMonth -= ($startMonth - 1) % 3;
+        $monthNames = [];
+        for ($i = 0; $i < 3; $i++) {
+            $monthNames[$i] = $this->monthList[$startMonth + $i - 1][0];
+        }
         if ($group[0]['groupType'] == 'seller') {
             return $this->render('sellers-table-style2', [
                 'groupId' =>  $group[0]['groupId'],
@@ -189,7 +216,8 @@ class AdminController extends Controller
                 'groupName' => $group[0]['groupName'],
                 'period' => $period,
                 'periodText' => $this->monthList[intval(date('m'))][0] . date(' Y'),
-                'sells' => Groups::getSells($group[0]['groupId'], $period)
+                'sells' => Groups::getSells($group[0]['groupId'], $period),
+                'monthNames' => $monthNames,
             ]);
         }
         throw new Exception('Что-то пошло не так.');
@@ -335,7 +363,13 @@ class AdminController extends Controller
         $period = Yii::$app->request->post('period');
         $data = Groups::getSells($id, $period);
         foreach ($data as $key => $rec) {
-            $data[$key]['sellsValue'] = number_format($rec['sellsValue'], 2, '.', ' ');
+            $data[$key]['sellsValue'] = number_format($rec['sellsValue'], 0, '.', ' ');
+            $data[$key]['monthValue1'] = number_format($rec['monthValue1'], 0, '.', ' ');
+            $data[$key]['monthValue2'] = number_format($rec['monthValue2'], 0, '.', ' ');
+            $data[$key]['monthValue3'] = number_format($rec['monthValue3'], 0, '.', ' ');
+            $data[$key]['yearValue'] = number_format($rec['yearValue'], 0, '.', ' ');
+            $data[$key]['quarterly'] = number_format($rec['quarterly'], 0, '.', ' ');
+            $data[$key]['monthly'] = number_format($rec['monthly'], 0, '.', ' ');
         }
         echo json_encode($data);
         exit;

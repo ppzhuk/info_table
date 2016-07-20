@@ -205,6 +205,34 @@ body.style2 {
     display: none;
 }
 
+.sells-value, .sells-plan-quarterly, .sells-plan-monthly, .sells-year-value, .sells-month1-value, .sells-month2-value, .sells-month3-value {
+    white-space: nowrap;
+}
+
+.table-calibration td:nth-child(1) {
+    width: 10%;
+}
+
+.table-calibration td:nth-child(2) {
+    width: 10%;
+}
+
+.table-calibration td:nth-child(3) {
+    width: 40%;
+}
+
+.table-calibration td:nth-child(4) {
+    width: 10%;
+}
+
+.table-calibration td:nth-child(5) {
+    width: 10%;
+}
+
+.table-calibration td:nth-child(6) {
+    width: 20%;
+}
+
 @media (min-width: 1470px) {
     body {
         overflow: hidden;
