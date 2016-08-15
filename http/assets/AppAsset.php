@@ -28,6 +28,7 @@ class AppAsset extends AssetBundle
         'js/ripples.min.js',
         'js/material.min.js',
         'js/jquery-ui.js',
+        'js/main.js',
         'js/autocompleter.js'
     ];
     public $depends = [
