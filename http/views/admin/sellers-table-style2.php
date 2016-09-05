@@ -17,13 +17,20 @@ $offset = 0;
     var groupId = <?=$groupId; ?>;
     var period = "<?=$period; ?>";
     var offset = <?=$offset; ?>;
+    var page = 'tablo';
 </script>
 
 <div class="container">
     <div class="row">
         <div class="col-lg-12 col-md-12 col-sm-12">
             <div class="row head-line">
-                <img src="img/logo-rt.png" height="55px"/>
+                <div class="pull-left">
+                    <img class="logo-tablo" src="img/logo-rt.png" height="55px"/>
+                    <br>
+                    <span class="timehere">
+
+                    </span>
+                </div>
                 <div class="pull-right">
                     <form action="/web/index.php?r=admin%2Flogout" method="post">
                         <input type="hidden" name="_csrf" value="<?=Yii::$app->request->getCsrfToken()?>" />
@@ -40,7 +47,7 @@ $offset = 0;
             </div>
             <div class="row">
                 <h2 align="center">Исполнение планов доходов за <?=$periodText; ?></h2>
-                <h4 align="center">"<?=$groupName; ?>"</h4>
+                <h4 align="center"><?=$groupName; ?></h4>
                 <div class="table table-ratings">
                     <div class="row thead">
                         <div class="col-lg-1 col-md-1 col-sm-1" style="text-align: center">Место</div>
@@ -72,9 +79,3 @@ $offset = 0;
         </div>
     </div>
 </div>
-<script>
-
-    /*    $(function(){
-
-     });*/
-</script>

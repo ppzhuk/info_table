@@ -1,12 +1,39 @@
 /**
  * Created by bodrik on 08.05.16.
  */
+
 $(function() {
     var fixedValues = {
         'quarterlyPlan': '',
-        'monthlyPlan': ''
+        'monthlyPlan': '',
+        'userId': 0
     }
     $.material.init();
+
+    $(".month-picker").datepicker({
+        changeMonth: true,
+        changeYear: true,
+        changeDay: false,
+        showButtonPanel: true,
+        dateFormat: 'yy-mm-01',
+        onClose: function(dateText, inst) {
+            var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
+            var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+            $(this).val($.datepicker.formatDate('yy-mm-01', new Date(year, month, 1)));
+        }
+    });
+
+    $(".month-picker").focus(function () {
+        $(".ui-datepicker-calendar").hide();
+        $("#ui-datepicker-div").position({
+            my: "center top",
+            at: "center bottom",
+            of: $(this)
+        });
+    });
+    //$(".datepicker").datepicker("option", "dateFormat", 'yy-mm-dd');
+
+    //$('.price-control').number(false, 2, '.', ' ');
 
     $('[data-targetframe]').on('click', function() {
         $('[data-frame]').addClass('hide');
@@ -48,6 +75,7 @@ $(function() {
 
     $('[name="membersGroup[]"]').click(function() {
         var userId = Number($(this).val());
+        fixedValues['userId'] = userId;
         if (/^\d+$/ig.test(userId)) {
             $.ajax({
                 url: "?r=admin%2Fget-seller-plan-json",
@@ -241,136 +269,151 @@ $(function() {
         while (new Date() < ms){}
     }
 
-    function rebuildTable(data) {
-        $savedData = [];
-        $('[data-position]').each(function(){
-            $(this).css('transition', 'top 1s cubic-bezier(0, 0, 1, 1), background 1s linear');
-            $savedData[$(this).data('position')] = {
-                'position' : $(this).find('div.place').html(),
-                'background' : $(this).css('background'),
-                'font-size' : $(this).css('font-size'),
-                'box-shadow' : $(this).css('box-shadow')
+    if (window.page && page == 'tablo') {
+        setInterval(function() {
+            var now = moment();
+            moment.lang('ru');
+            $('.timehere').html(now.format('dddd, MMMM DD YYYY, h:mm:ss'));
+        }, 1000);
+
+        function rebuildTable(data) {
+            $savedData = [];
+            $('[data-position]').each(function(){
+                $(this).css('transition', 'top 1s cubic-bezier(0, 0, 1, 1), background 1s linear');
+                $savedData[$(this).data('position')] = {
+                    'position' : $(this).find('div.place').html(),
+                    'background' : $(this).css('background'),
+                    'font-size' : $(this).css('font-size'),
+                    'box-shadow' : $(this).css('box-shadow')
+                }
+            });
+            for (i in data) {
+                var row = $('#row' + data[i].personId);
+                var newpos = Number(i) + 1;
+                row.find('.sells-value').html(data[i].sellsValue);
+                row.find('.sells-month1-value').html(data[i].monthValue1);
+                row.find('.sells-month2-value').html(data[i].monthValue2);
+                row.find('.sells-month3-value').html(data[i].monthValue3);
+                row.find('.sells-month4-value').html(data[i].monthValue3);
+                row.find('.sells-year-value').html(data[i].yearValue);
+                row.find('.sells-plan-quarterly').html(data[i].quarterly);
+                row.find('.sells-plan-monthly').html(data[i].monthly);
+                row.css('top', offset + 40 * newpos + 'px');
+                row.css('background', $savedData[newpos]['background']);
+                row.css('font-size', $savedData[newpos]['font-size']);
+                row.css('box-shadow', $savedData[newpos]['box-shadow']);
+                row.css('z-index', 100 - newpos);
+                row.find('div.place').html($savedData[newpos]['position']);
+                row.data('position', newpos);
             }
-        });
-        for (i in data) {
-            var row = $('#row' + data[i].personId);
-            var newpos = Number(i) + 1;
-            row.find('.sells-value').html(data[i].sellsValue);
-            row.find('.sells-month1-value').html(data[i].monthValue1);
-            row.find('.sells-month2-value').html(data[i].monthValue2);
-            row.find('.sells-month3-value').html(data[i].monthValue3);
-            row.find('.sells-month4-value').html(data[i].monthValue3);
-            row.find('.sells-year-value').html(data[i].yearValue);
-            row.find('.sells-plan-quarterly').html(data[i].quarterly);
-            row.find('.sells-plan-monthly').html(data[i].monthly);
-            row.css('top', offset + 40 * newpos + 'px');
-            row.css('background', $savedData[newpos]['background']);
-            row.css('font-size', $savedData[newpos]['font-size']);
-            row.css('box-shadow', $savedData[newpos]['box-shadow']);
-            row.css('z-index', 100 - newpos);
-            row.find('div.place').html($savedData[newpos]['position']);
-            row.data('position', newpos);
         }
-    }
 
-    function moveRow(id, position) {
-        var curRow = $('#row' + id);
-        $('[data-position]').each(function(){
-            //console.log($(this).css('top'));
-            if ($(this).data('position') == position) {
-            //if ($(this).css('top') == 40 * position + 'px') {
-                //var buffTop = $(this).css('top');
-                $(this).css('top', offset + 40 * curRow.data('position') + 'px');
-                curRow.css('top', offset + 40 * position + 'px');
-                var buffPlace = $(this).find('div.place').html();
-                $(this).find('div.place').html(curRow.find('div.place').html());
-                curRow.find('div.place').html(buffPlace);
-                var buffPosition = $(this).data('position');
-                $(this).data('position', curRow.data('position'));
-                curRow.data('position', buffPosition);
-                var buffBackground = $(this).css('background');
-                $(this).css('background', curRow.css('background'));
-                curRow.css('background', buffBackground);
-                var buffZindex = $(this).css('z-index');
-                $(this).css('z-index', curRow.css('z-index'));
-                curRow.css('z-index', buffZindex);
-                return false;
-            }
-        });
-    }
+        function moveRow(id, position) {
+            var curRow = $('#row' + id);
+            $('[data-position]').each(function(){
+                //console.log($(this).css('top'));
+                if ($(this).data('position') == position) {
+                    //if ($(this).css('top') == 40 * position + 'px') {
+                    //var buffTop = $(this).css('top');
+                    $(this).css('top', offset + 40 * curRow.data('position') + 'px');
+                    curRow.css('top', offset + 40 * position + 'px');
+                    var buffPlace = $(this).find('div.place').html();
+                    $(this).find('div.place').html(curRow.find('div.place').html());
+                    curRow.find('div.place').html(buffPlace);
+                    var buffPosition = $(this).data('position');
+                    $(this).data('position', curRow.data('position'));
+                    curRow.data('position', buffPosition);
+                    var buffBackground = $(this).css('background');
+                    $(this).css('background', curRow.css('background'));
+                    curRow.css('background', buffBackground);
+                    var buffZindex = $(this).css('z-index');
+                    $(this).css('z-index', curRow.css('z-index'));
+                    curRow.css('z-index', buffZindex);
+                    return false;
+                }
+            });
+        }
 
-    function pullRows() {
-        $('[data-position]').each(function() {
-            var curRow = $(this);
-            if (curRow.data('position') > 3) {
-                curRow.css('opacity', 0);
-                curRow.css('top', offset + 40 * curRow.data('position') + 'px');
-                setTimeout(function () {
-                    curRow.css('transition', 'opacity 1s linear');
-                    curRow.css('opacity', 1);
+        function pullRows() {
+            $('[data-position]').each(function() {
+                var curRow = $(this);
+                if (curRow.data('position') > 3) {
+                    curRow.css('opacity', 0);
+                    curRow.css('top', offset + 40 * curRow.data('position') + 'px');
+                    setTimeout(function () {
+                        curRow.css('transition', 'opacity 1s linear');
+                        curRow.css('opacity', 1);
+                    }, 10);
+                }
+            });
+            setTimeout(function(){
+                refreshData();
+            }, 10000);
+        }
+
+        function pushRows() {
+            var counter = 0;
+            $('[data-position]').each(function(){
+                console.log($(this).css('top'));
+                if ($(this).data('position') > 3) {
+                    $(this).css('transition', 'top 2s linear');
+                    if ($(this).css('top') > (offset + 120) + 'px') {
+                        counter++;
+                        $(this).css('top', '-=40');
+                    }
+                }
+            });
+            if (counter) {
+                setTimeout(function(){
+                    pushRows();
+                }, 2000);
+            } else {
+                setTimeout(function(){
+                    pullRows();
                 }, 10);
             }
-        });
-        setTimeout(function(){
-            refreshData();
-        }, 10000);
-    }
-
-    function pushRows() {
-        var counter = 0;
-        $('[data-position]').each(function(){
-            console.log($(this).css('top'));
-            if ($(this).data('position') > 3) {
-                $(this).css('transition', 'top 2s linear');
-                if ($(this).css('top') > (offset + 120) + 'px') {
-                    counter++;
-                    $(this).css('top', '-=40');
-                }
-            }
-        });
-        if (counter) {
-            setTimeout(function(){
-                pushRows();
-            }, 2000);
-        } else {
-            setTimeout(function(){
-                pullRows();
-            }, 10);
+            //curRow.css('top', 60 + 40 * position);
         }
-        //curRow.css('top', 60 + 40 * position);
-    }
 
-    function refreshData() {
-        $.ajax({
-            url: "?r=admin%2Fget-sells-json",
-            method: "POST",
-            data: {
-                _csrf : _csrf,
-                groupId : groupId,
-                period : period
-            },
-            dataType: "json",
-            success: function(data) {
-                // Обновляем данные
-                rebuildTable(data);
-                var winHeight = $(window).height();
-                var lastRowTop = $('[data-position="' + $('[data-position]').size() + '"]').offset().top;
-                var lastRowTHeight = $('[data-position="' + $('[data-position]').size() + '"]').height();
-                //console.log(lastRowTHeight);
-                if (lastRowTop + lastRowTHeight > winHeight) {
-                    setTimeout(function(){
-                        pushRows();
-                    }, 10000);
-                } else {
-                    setTimeout(function(){
-                        refreshData();
-                    }, 10000);
+        function refreshData() {
+            $.ajax({
+                url: "?r=admin%2Fget-sells-json",
+                method: "POST",
+                data: {
+                    _csrf : _csrf,
+                    groupId : groupId,
+                    period : period
+                },
+                dataType: "json",
+                success: function(data) {
+                    // Обновляем данные
+                    rebuildTable(data);
+                    var winHeight = $(window).height();
+                    var lastRowTop = $('[data-position="' + $('[data-position]').size() + '"]').offset().top;
+                    var lastRowTHeight = $('[data-position="' + $('[data-position]').size() + '"]').height();
+                    //console.log(lastRowTHeight);
+                    if (lastRowTop + lastRowTHeight > winHeight) {
+                        setTimeout(function(){
+                            pushRows();
+                        }, 10000);
+                    } else {
+                        setTimeout(function(){
+                            refreshData();
+                        }, 10000);
+                    }
                 }
-            }
-        })
+            })
+        }
+
+        refreshData();
     }
 
-    refreshData();
+    $('[data-presubmit]').submit(function(){
+       if (!confirm($(this).data('presubmit'))) {
+           return false;
+       }
+    });
+
 
 /*    setTimeout(function(){
         //refreshData();

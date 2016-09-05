@@ -4,7 +4,7 @@
 
 $( function() {
     $('.person-autocompleter').autocomplete({
-        source: personSource,
+        source: '?r=admin%2Ffind-sellers',
         minLength: 3,
         focus: function( event, ui ) {
             //console.log(ui);

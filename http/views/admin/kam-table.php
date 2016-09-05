@@ -16,13 +16,21 @@ $offset = 40;
     var groupId = <?=$groupId; ?>;
     var period = "<?=$period; ?>";
     var offset = <?=$offset; ?>;
+
+    var page = 'tablo';
 </script>
 
 <div class="container">
     <div class="row">
         <div class="col-lg-12 col-md-12 col-sm-12">
             <div class="row head-line">
-                <img src="img/logo-rt.png" height="55px"/>
+                <div class="pull-left">
+                    <img class="logo-tablo" src="img/logo-rt.png" height="55px"/>
+                    <br>
+                    <span class="timehere">
+
+                    </span>
+                </div>
                 <div class="pull-right">
                     <form action="/web/index.php?r=admin%2Flogout" method="post">
                         <input type="hidden" name="_csrf" value="<?=Yii::$app->request->getCsrfToken()?>" />

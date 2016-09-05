@@ -153,7 +153,7 @@ class AdminController extends Controller
         }
         return $this->render('manage-groups', [
             'groups' => Groups::getGroups(),
-            'otherPersons' => Groups::getPersons(null, Groups::PERSON_SELLER),
+            'otherPersons' => Groups::getFreePersons(null, Groups::PERSON_SELLER),
             'members' => []
         ]);
     }
@@ -163,20 +163,23 @@ class AdminController extends Controller
         if ($this->checkAccess(__METHOD__) !== true) {
             return;
         }
-        $groups = Groups::getGroups();
-        $autocomplitePersons = [];
-        foreach ($groups as $group) {
-            $persons = Groups::getPersons($group['groupId'], Groups::PERSON_SELLER);
-            foreach ($persons as $person) {
-                $autocomplitePersons[] = [
-                    'label' => $person['personName'] . ' из группы: ' . $group['groupName'] . '(' . $group['groupId'] . ')',
-                    'personId' => $person['personId'],
-                    'groupId' => $group['groupId'],
-                ];
+        if (Yii::$app->request->post('addCalibration')) {
+            $personID = intval(Yii::$app->request->post('personId'));
+            $value = floatval(Yii::$app->request->post('sumValue'));
+            $period = Yii::$app->request->post('period');
+            $comment = Yii::$app->request->post('comment');
+            if ($personID > 0 && $value != 0 && preg_match('/^\d{4}-\d{2}-01$/i',$period)) {
+                Groups::addCorrection(
+                    $personID,
+                    Person::$id,
+                    $value,
+                    $period,
+                    $comment
+                );
             }
         }
         return $this->render('calibration-table', [
-            'personsAutocomplite' => $autocomplitePersons
+            'correctionsTable' => Groups::getCorrections(0)
         ]);
     }
 
@@ -194,7 +197,10 @@ class AdminController extends Controller
                 'groups' => Groups::getGroups()
             ]);
         }
-        $period = '2016-03-01';
+        $period = Yii::$app->request->get('period');
+        if (!preg_match('/^\d{4}-\d{2}-01$/i', $period)) {
+            $period = date('Y-m-d') ;
+        }
         $startMonth = intval(substr($period, 6, 2));
         $startMonth -= ($startMonth - 1) % 3;
         $monthNames = [];
@@ -206,7 +212,7 @@ class AdminController extends Controller
                 'groupId' =>  $group[0]['groupId'],
                 'groupName' => $group[0]['groupName'],
                 'period' => $period,
-                'periodText' => $this->monthList[intval(date('m'))][0] . date(' Y'),
+                'periodText' => $this->monthList[intval(date('m', strtotime($period))) - 1][0] . date(' Y', strtotime($period)),
                 'sells' => Groups::getSells($group[0]['groupId'], $period)
             ]);
         }
@@ -215,7 +221,7 @@ class AdminController extends Controller
                 'groupId' =>  $group[0]['groupId'],
                 'groupName' => $group[0]['groupName'],
                 'period' => $period,
-                'periodText' => $this->monthList[intval(date('m'))][0] . date(' Y'),
+                'periodText' => $this->monthList[intval(date('m', strtotime($period))) - 1][0] . date(' Y', strtotime($period)),
                 'sells' => Groups::getSells($group[0]['groupId'], $period),
                 'monthNames' => $monthNames,
             ]);
@@ -290,6 +296,7 @@ class AdminController extends Controller
             'nameGroup' => Yii::$app->request->post('nameGroup'),
             'membersGroup' => Yii::$app->request->post('membersGroup')
         ];
+        $data['membersGroup'] = ($data['membersGroup'] == null ? [] : $data['membersGroup']);
         $errCode = 0;
         if (!Groups::updateGroup(Yii::$app->request->post('groupId'), $data)) {
             $errCode = -1;
@@ -299,10 +306,33 @@ class AdminController extends Controller
     }
 
     // Далее идут ajax функции
+    public function actionFindSellers($term)
+    {
+        $autocomplitePersons = [];
+        $sellers = Groups::findUsersByName($term, Groups::PERSON_SELLER);
+        foreach ($sellers as $seller) {
+            $autocomplitePersons[] = [
+                'label' => $seller['personName'],
+                'personId' => $seller['personId']
+            ];
+        }
+        echo json_encode($autocomplitePersons);
+        exit;
+    }
+
     public function actionSavePlanJson()
     {
-        //$id = Yii::$app->request->post('groupId');
-        $data = ['code' => -1];
+        $groupId = Yii::$app->request->post('groupId');
+        $personId = Yii::$app->request->post('personId');
+        $data = [
+            'monthlyPlan' => Yii::$app->request->post('monthlyValue'),
+            'quarterlyPlan' => Yii::$app->request->post('quarterlyValue')
+        ];
+        if (Groups::setPlans($personId, $groupId, $data)) {
+            $data = ['code' => 0];
+        } else {
+            $data = ['code' => -1];
+        }
         echo json_encode($data);
         exit;
     }
@@ -315,15 +345,7 @@ class AdminController extends Controller
         $id = Yii::$app->request->post('groupId');
         $data = Groups::getGroups($id);
         $data['members'] = Groups::getPersons($id, Groups::PERSON_SELLER);
-        $data['otherPersons'] = array_udiff(Groups::getPersons(null, Groups::PERSON_SELLER), $data['members'], function($a, $b) {
-            if ($a['personId'] == $b['personId']) {
-                return 0;
-            } elseif ($a['personId'] < $b['personId']) {
-                return -1;
-            } elseif ($a['personId'] > $b['personId']) {
-                return 1;
-            }
-        });
+        $data['otherPersons'] = Groups::getFreePersons(Groups::PERSON_SELLER);
 
         echo json_encode($data);
         exit;
@@ -355,7 +377,7 @@ class AdminController extends Controller
 
     public function actionGetSellsJson()
     {
-        Groups::randomFill();
+        //Groups::randomFill();
         if ($this->checkAccess(__METHOD__, false) !== true) {
             return;
         }
