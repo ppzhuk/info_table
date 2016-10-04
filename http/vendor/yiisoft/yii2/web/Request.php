@@ -131,11 +131,6 @@ class Request extends \yii\base\Request
      * @var string a secret key used for cookie validation. This property must be set if [[enableCookieValidation]] is true.
      */
     public $cookieValidationKey;
-
-    /**
-     * @var string a secret key used for generate password hash
-     */
-    public $passwordSalt;
     /**
      * @var string the name of the POST parameter that is used to indicate if a request is a PUT, PATCH or DELETE
      * request tunneled through POST. Defaults to '_method'.
@@ -1271,9 +1266,8 @@ class Request extends \yii\base\Request
     /**
      * Returns the token used to perform CSRF validation.
      *
-     * This token is a masked version of [[rawCsrfToken]] to prevent [BREACH attacks](http://breachattack.com/).
-     * This token may be passed along via a hidden field of an HTML form or an HTTP header value
-     * to support CSRF validation.
+     * This token is generated in a way to prevent [BREACH attacks](http://breachattack.com/). It may be passed
+     * along via a hidden field of an HTML form or an HTTP header value to support CSRF validation.
      * @param boolean $regenerate whether to regenerate CSRF token. When this parameter is true, each time
      * this method is called, a new CSRF token will be generated and persisted (in session or cookie).
      * @return string the token used to perform CSRF validation.
@@ -1409,6 +1403,10 @@ class Request extends \yii\base\Request
      */
     private function validateCsrfTokenInternal($token, $trueToken)
     {
+        if (!is_string($token)) {
+            return false;
+        }
+
         $token = base64_decode(str_replace('.', '+', $token));
         $n = StringHelper::byteLength($token);
         if ($n <= static::CSRF_MASK_LENGTH) {

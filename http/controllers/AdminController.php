@@ -23,6 +23,7 @@ class AdminController extends Controller
         'app\controllers\AdminController::actionLogout' => [1, 2, 3, 4],
         'app\controllers\AdminController::actionSellsTable' => [1, 2, 3, 4],
         'app\controllers\AdminController::actionIndex' => [2, 3, 4],
+        'app\controllers\AdminController::actionCharts' => [2, 3, 4],
         'app\controllers\AdminController::actionManageUsers' => [4],
         'app\controllers\AdminController::actionManageGroups' => [2, 4],
         'app\controllers\AdminController::actionCalibration' => [2, 3, 4],
@@ -31,6 +32,7 @@ class AdminController extends Controller
         'app\controllers\AdminController::actionGetUserJson' => [1, 2, 3, 4],
         'app\controllers\AdminController::actionGetGroupJson' => [1, 2, 3, 4],
         'app\controllers\AdminController::actionGetSellsJson' => [1, 2, 3, 4],
+        'app\controllers\AdminController::actionGetChartsJson' => [2, 3, 4],
         'app\controllers\AdminController::actionUpdateGroup' => [2, 4],
         'app\controllers\AdminController::actionCreateGroup' => [2, 4],
         'app\controllers\AdminController::actionUpdateUser' => [4],
@@ -181,6 +183,57 @@ class AdminController extends Controller
         return $this->render('calibration-table', [
             'correctionsTable' => Groups::getCorrections(0)
         ]);
+    }
+
+    public function actionCharts()
+    {
+        if ($this->checkAccess(__METHOD__) !== true) {
+            return;
+        }
+        $startDate = isset($_GET['startDate']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['startDate']) ? $_GET['startDate'] : date('Y-m-01');
+        $endDate = isset($_GET['endDate']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['endDate']) ? $_GET['endDate'] : date('Y-m-01');
+        $groupId = isset($_GET['groupId']) ? intval($_GET['groupId']) : 0;
+        $unionMode = isset($_GET['unionMode']) ? intval($_GET['unionMode']) : 0;
+        if (isset($_GET['export'])) {
+            return $this->actionGetExcel($unionMode);
+        } else {
+            return $this->render('charts',
+                [
+                    'startDate' => $startDate,
+                    'endDate' => $endDate,
+                    'groupId' => $groupId,
+                    'unionMode' => $unionMode,
+                    'groups' => Groups::getGroups(),
+                ]
+            );
+        }
+    }
+
+    private function actionGetExcel($unionMode)
+    {
+        $objPhpExcel = new PHPExcel();
+        $objPhpExcel->getProperties()
+            ->setTitle("Office 2007 XLSX Test Document")
+            ->setSubject("Office 2007 XLSX Test Document")
+            ->setDescription("Test document for Office 2007 XLSX, generated using PHP classes.")
+            ->setKeywords("office 2007 openxml php")
+            ->setCategory("Test result file");
+        $objWorkSheet = $objPhpExcel->createSheet(0);
+
+        switch ($unionMode) {
+            case 0: {
+                $objWorkSheet->setCellValue('A1', '1 этаж');
+            }
+            case 1: {
+
+            }
+        }
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="01simple.xlsx"');
+        header('Cache-Control: max-age=0');
+        $objWriter = PHPExcel_IOFactory::createWriter($objPhpExcel, 'Excel2007');
+        $objWriter->save('php://output');
     }
 
     public function actionSellsTable()
@@ -394,6 +447,77 @@ class AdminController extends Controller
             $data[$key]['monthly'] = number_format($rec['monthly'], 0, '.', ' ');
         }
         echo json_encode($data);
+        exit;
+    }
+
+    public function actionGetChartsJson()
+    {
+        if ($this->checkAccess(__METHOD__, false) !== true) {
+            return;
+        }
+/*        $id = Yii::$app->request->post('userId');
+        $data = Groups::getPerson($id);*/
+        $startDate = isset($_GET['startDate']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['startDate']) ? $_GET['startDate'] : date('Y-m-01');
+        $endDate = isset($_GET['endDate']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['endDate']) ? $_GET['endDate'] : date('Y-m-01');
+        $groupId = isset($_GET['groupId']) ? intval($_GET['groupId']) : 0;
+        $unionMode = isset($_GET['unionMode']) ? intval($_GET['unionMode']) : 0;
+        $data = Groups::getSellsByInterval($startDate, $endDate, $groupId);
+        $group = $groupId ? Groups::getGroups($groupId)[0] : null;
+        $groups = Groups::getGroups();
+        $prepareData = [];
+        $processedData = [];
+        // Если группируем по группам
+        if ($unionMode == 0) {
+            $groupNames = [];
+            foreach ($groups as $group) {
+                $groupNames[$group['groupId']] = $group['groupName'];
+            }
+            foreach ($data as $item) {
+                if (!isset($prepareData[$item['groupId']])) {
+                    $prepareData[$item['groupId']] = [];
+                }
+                $date = strtotime($item['sellsPeriod']) . '000';
+                if (!isset($prepareData[$item['groupId']][$date])) {
+                    $prepareData[$item['groupId']][$date] = 0;
+                }
+                $prepareData[$item['groupId']][$date] += floatval($item['sellsValue']);
+            }
+            foreach ($prepareData as $id => $data) {
+                $tmpData = [];
+                foreach ($data as $date => $value) {
+                    $tmpData[] = [$date, $value];
+                }
+                $processedData[] = [
+                    'name' => $groupNames[$id],
+                    'data' => $tmpData,
+                ];
+            }
+            $title = $group ? 'График с группировкой по группам(' . $groupNames[$groupId] . ')' : 'График с группировкой по всем группам';
+            $subtitle = 'За период с  ' . $startDate . ' по ' . $endDate;
+        }
+        // Если группируем по продавцам
+        if ($unionMode == 1) {
+            foreach ($data as $item) {
+                if (!isset($prepareData[$item['personName']])) {
+                    $prepareData[$item['personName']] = [];
+                }
+                $prepareData[$item['personName']][] = [intval(strtotime($item['sellsPeriod']) . '000'), floatval($item['sellsValue'])];
+            }
+            foreach ($prepareData as $sellerName => $sellsData) {
+                $processedData[] = [
+                    'name' => $sellerName,
+                    'data' => $sellsData,
+                ];
+            }
+            $title = $group ? 'График с группировкой по продавцам группы ' . $group['groupName'] : 'График с группировкой по продавцам всех групп';
+            $subtitle = 'За период с  ' . $startDate . ' по ' . $endDate;
+        }
+
+        echo json_encode([
+            'series' => $processedData,
+            'title' => $title,
+            'subtitle' => $subtitle,
+        ]);
         exit;
     }
 }

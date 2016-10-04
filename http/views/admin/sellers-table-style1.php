@@ -20,7 +20,7 @@ $this->title = 'Список групп';
             <div class="row head-line">
                 <img src="img/logo-rt.png"/>
                 <div class="pull-right">
-                    <form action="/web/index.php?r=admin%2Flogout" method="post">
+                    <form action="index.php?r=admin%2Flogout" method="post">
                         <input type="hidden" name="_csrf" value="<?=Yii::$app->request->getCsrfToken()?>" />
                         <input type="hidden" name="groupId" value="<?=$groupId; ?>" />
                         <input type="hidden" name="period" value="<?=$period; ?>" />

@@ -30,6 +30,7 @@ class AppAsset extends AssetBundle
         'js/jquery-ui.js',
         'js/jquery.number.min.js',
         'js/moment-with-locales.min.js',
+        'js/highcharts.js',
         'js/main.js',
         'js/autocompleter.js'
     ];

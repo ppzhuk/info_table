@@ -414,21 +414,74 @@ $(function() {
        }
     });
 
+    if (window.page && page == 'charts') {
+        $(function () {
+            Highcharts.setOptions({
+                lang: {
+                    loading: 'Загрузка...',
+                    months: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
+                    weekdays: ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'],
+                    shortMonths: ['Янв', 'Фев', 'Март', 'Апр', 'Май', 'Июнь', 'Июль', 'Авг', 'Сент', 'Окт', 'Нояб', 'Дек'],
+                    exportButtonTitle: "Экспорт",
+                    printButtonTitle: "Печать",
+                    rangeSelectorFrom: "С",
+                    rangeSelectorTo: "По",
+                    rangeSelectorZoom: "Период",
+                    downloadPNG: 'Скачать PNG',
+                    downloadJPEG: 'Скачать JPEG',
+                    downloadPDF: 'Скачать PDF',
+                    downloadSVG: 'Скачать SVG',
+                    printChart: 'Напечатать график'
+                }
+            });
 
-/*    setTimeout(function(){
-        //refreshData();
-        moveRow(10, 2);
-    }, 2000);*/
+            var groupId = window.groupId ? window.groupId : 0;
+            var startDate = window.startDate ? window.startDate : '';
+            var endDate = window.endDate ? window.endDate : '';
 
-/*    setTimeout(function(){
-        moveRow(5, 8);
-    }, 1000);
-    /!*    setTimeout(function(){
-     moveRow(6, 2);
-     }, 3000);*!/
-    setTimeout(function(){
-        pushRows();
-    }, 3000);*/
-
+            $.getJSON('?r=admin%2Fget-charts-json&startDate=' + startDate + '&endDate=' + endDate + '&groupId=' + groupId + '&unionMode=' + unionMode, function (response) {
+                console.log(response.series);
+                $('#chart').highcharts({
+                    chart: {
+                        type: 'line'
+                    },
+                    title: {
+                        text: response.title
+                    },
+                    subtitle: {
+                        text: response.subtitle
+                    },
+                    xAxis: {
+                        type: 'datetime',
+                        tickInterval: 24 * 3600 * 1000 * 30,
+                        dateTimeLabelFormats: {
+                            day: '%d %b %Y'    //ex- 01 Jan 2016
+                        }
+                    },
+                    yAxis: {
+                        min: 0,
+                        title: {
+                            text: 'Доход (руб)'
+                        }
+                    },
+                    tooltip: {
+                        headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                        pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                        '<td style="padding:0"><b>{point.y:.0f} руб.</b></td></tr>',
+                        footerFormat: '</table>',
+                        shared: true,
+                        useHTML: true
+                    },
+                    plotOptions: {
+                        column: {
+                            pointPadding: 0.2,
+                            borderWidth: 0
+                        }
+                    },
+                    series: response.series
+                });
+            });
+        });
+    }
 
 });

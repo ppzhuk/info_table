@@ -147,7 +147,6 @@ class Groups extends ActiveRecord
                 `sells`.`value` DESC,
                 `person`.`fio` ASC
         ", $cond);
-        //var_dump($forRet->getRawSql()); die;
         return $forRet->queryAll();
     }
 
@@ -493,5 +492,50 @@ class Groups extends ActiveRecord
             ORDER BY
               `g`.`group_name`
         ", $paramsArr)->queryAll();
+    }
+
+    static public function getSellsByInterval($startDate, $endDate, $groupId = null)
+    {
+        $where = [];
+        $cond = [];
+        if (!empty($groupId)) {
+            $where[] = "`relation`.`group` = :groupId";
+            $cond['groupId'] = $groupId;
+        }
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $startDate)) {
+            $where[] = "`sells`.`date` >= :startDate";
+            $cond['startDate'] = $startDate;
+        }
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $endDate)) {
+            $where[] = "`sells`.`date` <= :endDate";
+            $cond['endDate'] = $endDate;
+        }
+        $forRet = self::getDb()->createCommand("
+            SELECT
+                `person`.`id` AS `personId`,
+                `person`.`fio` AS `personName`,
+                `person`.`access_type` AS `personAccessType`,
+                `relation`.`group` AS `groupId`,
+                `sells`.`date` AS `sellsPeriod`,
+                `sells`.`value` AS `sellsValue`,
+                `groups`.`group_type` AS `groupType`,
+                `plans`.`monthly` AS `monthly`,
+                `plans`.`quarterly` AS `quarterly`
+            FROM
+                `relation`
+                LEFT JOIN `sells` ON `sells`.`seller` = `relation`.`person`
+                LEFT JOIN `person` ON `person`.`id` = `relation`.`person`
+                LEFT JOIN `groups` ON `groups`.`id` = `relation`.`group`
+                LEFT JOIN `plans` ON `plans`.`seller_id` = `relation`.`person` AND `plans`.`groups_id` = `relation`.`group`
+            WHERE
+                " . implode(' AND ', $where) . "
+            GROUP BY
+                `person`.`id`,
+                `sells`.`date`
+            ORDER BY
+                `person`.`fio` ASC,
+                `sells`.`date` DESC
+        ", $cond);
+        return $forRet->queryAll();
     }
 }
