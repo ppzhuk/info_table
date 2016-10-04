@@ -16,6 +16,7 @@ use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use app\models\Person;
 
+
 class AdminController extends Controller
 {
     public $accessMap = [
@@ -195,7 +196,7 @@ class AdminController extends Controller
         $groupId = isset($_GET['groupId']) ? intval($_GET['groupId']) : 0;
         $unionMode = isset($_GET['unionMode']) ? intval($_GET['unionMode']) : 0;
         if (isset($_GET['export'])) {
-            return $this->actionGetExcel($unionMode);
+            return $this->actionGetExcel($unionMode, $groupId, $startDate, $endDate);
         } else {
             return $this->render('charts',
                 [
@@ -209,30 +210,78 @@ class AdminController extends Controller
         }
     }
 
-    private function actionGetExcel($unionMode)
+    private function actionGetExcel($unionMode, $groupId, $startDate, $endDate)
     {
-        $objPhpExcel = new PHPExcel();
+        $objPhpExcel = new \PHPExcel();
         $objPhpExcel->getProperties()
             ->setTitle("Office 2007 XLSX Test Document")
             ->setSubject("Office 2007 XLSX Test Document")
             ->setDescription("Test document for Office 2007 XLSX, generated using PHP classes.")
             ->setKeywords("office 2007 openxml php")
             ->setCategory("Test result file");
-        $objWorkSheet = $objPhpExcel->createSheet(0);
+        $objWorkSheet = $objPhpExcel->getActiveSheet();
+
+        $data = Groups::getSellsByInterval($startDate, $endDate, $groupId);
+        $group = $groupId ? Groups::getGroups($groupId)[0] : null;
+        $groups = Groups::getGroups();
+        $prepareData = [];
+        $processedData = [];
 
         switch ($unionMode) {
             case 0: {
-                $objWorkSheet->setCellValue('A1', '1 этаж');
+                $groupNames = [];
+                foreach ($groups as $group) {
+                    $groupNames[$group['groupId']] = $group['groupName'];
+                }
+                foreach ($data as $sellsData) {
+                    if (!isset($prepareData[$sellsData['sellsPeriod']])) {
+                        $prepareData[$sellsData['sellsPeriod']] = [];
+                    }
+                    if (!isset($prepareData[$sellsData['sellsPeriod']][$sellsData['groupId']])) {
+                        $prepareData[$sellsData['sellsPeriod']][$sellsData['groupId']] = 0;
+                    }
+                    $prepareData[$sellsData['sellsPeriod']][$sellsData['groupId']] += $sellsData['sellsValue'];
+                }
+                $row = 1;
+                foreach ($prepareData as $period => $sellsData) {
+                    if ($row == 1) {
+                        $col = 1;
+                        foreach ($sellsData as $groupId => $value) {
+                            $objPhpExcel->getActiveSheet()->getColumnDimensionByColumn($col)->setWidth(20);
+                            $objWorkSheet->setCellValueByColumnAndRow($col, $row, $groupNames[$groupId]);
+                            $col++;
+                        }
+                        $objPhpExcel->getActiveSheet()->getColumnDimensionByColumn(0)->setWidth(20);
+                        $objWorkSheet->setCellValueByColumnAndRow(0, 1, 'Период/Группа');
+                        $row++;
+                    }
+                    $col = 0;
+                    $objWorkSheet->setCellValueByColumnAndRow($col, $row, $period);
+                    $row++;
+                }
+
+                $row = 2;
+                foreach ($prepareData as $period => $sellsData) {
+                    $col = 1;
+                    foreach ($sellsData as $groupId => $value) {
+                        $objWorkSheet->setCellValueByColumnAndRow($col, $row, $value);
+                        $col++;
+                    }
+                    $row++;
+                }
+                //$objWorkSheet->setCellValue('A1', '1 этаж');
             }
             case 1: {
 
             }
         }
 
+        header('Content-Description: File Transfer');
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="01simple.xlsx"');
+        header('Content-Disposition: attachment; filename="export.xlsx"');
+        header('Content-Transfer-Encoding: binary');
         header('Cache-Control: max-age=0');
-        $objWriter = PHPExcel_IOFactory::createWriter($objPhpExcel, 'Excel2007');
+        $objWriter = \PHPExcel_IOFactory::createWriter($objPhpExcel, 'Excel2007');
         $objWriter->save('php://output');
     }
 
@@ -492,7 +541,7 @@ class AdminController extends Controller
                     'data' => $tmpData,
                 ];
             }
-            $title = $group ? 'График с группировкой по группам(' . $groupNames[$groupId] . ')' : 'График с группировкой по всем группам';
+            $title = $groupId != 0 ? 'График с группировкой по группам(' . $groupNames[$groupId] . ')' : 'График с группировкой по всем группам';
             $subtitle = 'За период с  ' . $startDate . ' по ' . $endDate;
         }
         // Если группируем по продавцам
