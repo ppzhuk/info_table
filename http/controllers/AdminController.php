@@ -172,13 +172,11 @@ class AdminController extends Controller
             $period = Yii::$app->request->post('period');
             $comment = Yii::$app->request->post('comment');
             if ($personID > 0 && $value != 0 && preg_match('/^\d{4}-\d{2}-01$/i',$period)) {
-                Groups::addCorrection(
-                    $personID,
-                    Person::$id,
-                    $value,
-                    $period,
-                    $comment
-                );
+                if (!Groups::addCorrection($personID, Person::$id, $value, $period, $comment)) {
+                    $errCode = -1;
+                    header('Location: ?r=admin%2Fcalibration&errcode=' . $errCode, true, 301);
+                    exit;
+                }
             }
         }
         return $this->render('calibration-table', [
@@ -205,6 +203,7 @@ class AdminController extends Controller
                     'groupId' => $groupId,
                     'unionMode' => $unionMode,
                     'groups' => Groups::getGroups(),
+                    'sellers' => Groups::getPersons(null, Groups::PERSON_SELLER),
                 ]
             );
         }
@@ -301,7 +300,7 @@ class AdminController extends Controller
         }
         $period = Yii::$app->request->get('period');
         if (!preg_match('/^\d{4}-\d{2}-01$/i', $period)) {
-            $period = date('Y-m-d') ;
+            $period = date('Y-m-01') ;
         }
         $startMonth = intval(substr($period, 6, 2));
         $startMonth -= ($startMonth - 1) % 3;
@@ -315,7 +314,7 @@ class AdminController extends Controller
                 'groupName' => $group[0]['groupName'],
                 'period' => $period,
                 'periodText' => $this->monthList[intval(date('m', strtotime($period))) - 1][0] . date(' Y', strtotime($period)),
-                'sells' => Groups::getSells($group[0]['groupId'], $period)
+                'sells' => Groups::getSells($group[0]['groupId'], null, $period)
             ]);
         }
         if ($group[0]['groupType'] == 'KAM') {
@@ -324,7 +323,7 @@ class AdminController extends Controller
                 'groupName' => $group[0]['groupName'],
                 'period' => $period,
                 'periodText' => $this->monthList[intval(date('m', strtotime($period))) - 1][0] . date(' Y', strtotime($period)),
-                'sells' => Groups::getSells($group[0]['groupId'], $period),
+                'sells' => Groups::getSells($group[0]['groupId'], null, $period),
                 'monthNames' => $monthNames,
             ]);
         }
@@ -339,7 +338,6 @@ class AdminController extends Controller
             return;
         }
         $data = [
-            'loginPerson' => Yii::$app->request->post('loginUser'),
             'fioPerson' => Yii::$app->request->post('nameUser'),
             'access_type' => Yii::$app->request->post('accessType'),
             'passwordPerson' => Yii::$app->request->post('password'),
@@ -358,14 +356,19 @@ class AdminController extends Controller
             return;
         }
         $data = [
-            'loginPerson' => Yii::$app->request->post('loginUser'),
             'fioPerson' => Yii::$app->request->post('nameUser'),
             'access_type' => Yii::$app->request->post('accessType'),
             'passwordPerson' => Yii::$app->request->post('password'),
         ];
         $errCode = 0;
-        if (!Groups::updatePerson(Yii::$app->request->post('userId'), $data)) {
-            $errCode = -1;
+        if (Yii::$app->request->get('action') == 'remove_user') {
+            if (!Groups::removePerson(Yii::$app->request->post('userId'))) {
+                $errCode = -1;
+            }
+        } else {
+            if (!Groups::updatePerson(Yii::$app->request->post('userId'), $data)) {
+                $errCode = -1;
+            }
         }
         header('Location: ?r=admin%2Fmanage-users&errcode=' . $errCode, true, 301);
         exit;
@@ -400,8 +403,14 @@ class AdminController extends Controller
         ];
         $data['membersGroup'] = ($data['membersGroup'] == null ? [] : $data['membersGroup']);
         $errCode = 0;
-        if (!Groups::updateGroup(Yii::$app->request->post('groupId'), $data)) {
-            $errCode = -1;
+        if (Yii::$app->request->get('action') == 'remove_group') {
+            if (!Groups::removeGroup(Yii::$app->request->post('groupId'))) {
+                $errCode = -1;
+            }
+        } else {
+            if (!Groups::updateGroup(Yii::$app->request->post('groupId'), $data)) {
+                $errCode = -1;
+            }
         }
         header('Location: ?r=admin%2Fmanage-groups&errcode=' . $errCode, true, 301);
         exit;
@@ -470,9 +479,6 @@ class AdminController extends Controller
         $groupId = Yii::$app->request->post('groupId');
         $personId = Yii::$app->request->post('personId');
         $data = Groups::getPlans($personId, $groupId);
-/*        foreach ($data as $key => $rec) {
-            $data[$key]['sellsValue'] = number_format($rec['sellsValue'], 2, '.', ' ');
-        }*/
         echo json_encode($data);
         exit;
     }
@@ -485,7 +491,7 @@ class AdminController extends Controller
         }
         $id = Yii::$app->request->post('groupId');
         $period = Yii::$app->request->post('period');
-        $data = Groups::getSells($id, $period);
+        $data = Groups::getSells($id, null, $period);
         foreach ($data as $key => $rec) {
             $data[$key]['sellsValue'] = number_format($rec['sellsValue'], 0, '.', ' ');
             $data[$key]['monthValue1'] = number_format($rec['monthValue1'], 0, '.', ' ');
@@ -510,7 +516,8 @@ class AdminController extends Controller
         $endDate = isset($_GET['endDate']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['endDate']) ? $_GET['endDate'] : date('Y-m-01');
         $groupId = isset($_GET['groupId']) ? intval($_GET['groupId']) : 0;
         $unionMode = isset($_GET['unionMode']) ? intval($_GET['unionMode']) : 0;
-        $data = Groups::getSellsByInterval($startDate, $endDate, $groupId);
+        $sellersList = isset($_GET['sellers']) && is_array($_GET['sellers']) ? $_GET['sellers'] : [];
+        $data = Groups::getSellsByInterval($startDate, $endDate, $groupId, $sellersList);
         $group = $groupId ? Groups::getGroups($groupId)[0] : null;
         $groups = Groups::getGroups();
         $prepareData = [];

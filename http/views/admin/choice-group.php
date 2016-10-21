@@ -17,7 +17,7 @@ $this->title = 'Редактирование групп';
                 <h2>Таблица доходов</h2>
                 <form class="form-horizontal" method="get" action="">
                     <input type="hidden" name="r" value="admin/sells-table"/>
-                    <h3>Выберите группу</h3>
+                    <h3>Настройка фильтров</h3>
 
                     <div class="form-group">
                         <label for="groupId" class="col-md-2 control-label">Группа</label>
@@ -28,6 +28,14 @@ $this->title = 'Редактирование групп';
                                     <option value="<?=$group['groupId']; ?>"><?=$group['groupName']; ?></option>
                                 <?php endforeach; ?>
                             </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">Период</label>
+
+                        <div class="col-md-10">
+                            <input type="text" class="form-control month-picker" name="period" placeholder="YYYY-MM-01"/>
                         </div>
                     </div>
 

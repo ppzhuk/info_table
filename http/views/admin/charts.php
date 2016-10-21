@@ -20,7 +20,7 @@ $this->title = 'Графики';
     <div class="row">
         <div class="col-lg-12 col-md-12 col-sm-12">
             <h2>Графики</h2>
-            <form class="form-horizontal" action="" method="get">
+            <form name="chart-filters" class="form-horizontal" action="" method="get">
                 <input type="hidden" name="r" value="admin/charts"/>
                 <input type="hidden" name="_csrf" value="<?=Yii::$app->request->getCsrfToken()?>" />
                 <table class="form-width-full">
@@ -30,7 +30,7 @@ $this->title = 'Графики';
                                 <label class="col-md-2 control-label">Групировать</label>
 
                                 <div class="col-md-10">
-                                    <select  name="unionMode" class="form-control">
+                                    <select name="unionMode" class="form-control">
                                         <option value="0" <?=$unionMode == 0 ? 'selected' : ''; ?>>по группам</option>
                                         <option value="1" <?=$unionMode == 1 ? 'selected' : ''; ?>>по продавцам</option>
                                     </select>
@@ -71,6 +71,23 @@ $this->title = 'Графики';
                             </div>
                         </td>
                     </tr>
+                    <tr id="chart-seller-filter" style="display: none;">
+                        <td colspan="2">
+                            <div class="form-group">
+                                <label class="col-md-1 control-label">Выберите продавцов</label>
+                                <div class="col-md-11">
+                                    <select name="sellers[]" multiple="" class="form-control" style="height: 200px">
+                                        <?php $counter = 0; ?>
+                                        <?php foreach($sellers as $seller): ?>
+                                            <?php $counter++; ?>
+                                            <option <?=isset($_GET['sellers']) && in_array($seller['personId'], $_GET['sellers']) ? 'selected="selected"': ''; ?> value="<?=$seller['personId']; ?>"><?=$counter . '. ' . $seller['personName']; ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <span class="label">* - Чтобы выделить несколько продавцов, зажмите ctrl и нажмите на его имя. Если не выбран ни один продавец, то будут выведены данные по всем.</span>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
                     <tr>
                         <td colspan="2">
                             <div class="form-group pull-right">
@@ -80,7 +97,7 @@ $this->title = 'Графики';
                         </td>
                     </tr>
                 </table>
-                <div id="chart" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+                <div id="chart" style="min-width: 310px; height: 600px; margin: 0 auto"></div>
             </form>
         </div>
     </div>

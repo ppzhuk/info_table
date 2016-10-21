@@ -15,7 +15,6 @@ class Person extends ActiveRecord implements IdentityInterface
 {
 
     public static $id;
-    public static $login;
     public static $fullName;
     public static $password;
     public static $accessType;
@@ -32,7 +31,6 @@ class Person extends ActiveRecord implements IdentityInterface
         foreach ($users as $user) {
             static::$user = $user;
             static::$id = $user['id'];
-            static::$login = $user['login'];
             static::$fullName = $user['fio'];
             static::$password = $user['password'];
             static::$accessType = $user['access_type'];
@@ -67,10 +65,9 @@ class Person extends ActiveRecord implements IdentityInterface
     {
         $users = self::find()->all();
         foreach ($users as $user) {
-            if ($user['login'] == $username) {
+            if ($user['fio'] == $username) {
                 static::$user = $user;
                 static::$id = $user['id'];
-                static::$login = $user['login'];
                 static::$fullName = $user['fio'];
                 static::$password = $user['password'];
                 static::$accessType = $user['access_type'];
@@ -78,13 +75,6 @@ class Person extends ActiveRecord implements IdentityInterface
                 return new static($user);
             }
         }
-/*        foreach (self::$users as $user) {
-            if (strcasecmp($user['username'], $username) === 0) {
-                return new static($user);
-            }
-        }
-
-        return null;*/
     }
 
     /**

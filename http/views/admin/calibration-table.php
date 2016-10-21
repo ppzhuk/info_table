@@ -53,8 +53,10 @@ $this->title = 'Таблица правок';
             <h3>Архив правок</h3>
             <table class="table table-striped table-hover">
                 <colgroup width="4%">
-                <colgroup width="28%">
-                <colgroup width="28%">
+                <colgroup width="18%">
+                <colgroup width="18%">
+                <colgroup width="10%">
+                <colgroup width="10%">
                 <colgroup width="10%">
                 <colgroup width="10%">
                 <colgroup width="20%">
@@ -64,6 +66,8 @@ $this->title = 'Таблица правок';
                     <th>Имя менеджера</th>
                     <th>Имя продавца</th>
                     <th>Сумма</th>
+                    <th>Старое значение</th>
+                    <th>Новое значение</th>
                     <th>Период</th>
                     <th>Комментарий</th>
                 </tr>
@@ -75,6 +79,8 @@ $this->title = 'Таблица правок';
                         <td><?=$correction['managerName']; ?></td>
                         <td><?=$correction['sellerName']; ?></td>
                         <td><?=$correction['value']; ?></td>
+                        <td><?=$correction['old_value']; ?></td>
+                        <td><?=$correction['new_value']; ?></td>
                         <td><?=$correction['period']; ?></td>
                         <td><?=$correction['comment']; ?></td>
                     </tr>

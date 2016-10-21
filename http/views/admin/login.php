@@ -28,7 +28,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     ],
                 ]); ?>
 
-                <?= $form->field($model, 'login')->textInput(['autofocus' => true])->label('Логин') ?>
+                <?= $form->field($model, 'login')->textInput(['autofocus' => true])->label('ФИО') ?>
 
                 <?= $form->field($model, 'password')->passwordInput()->label('Пароль') ?>
 

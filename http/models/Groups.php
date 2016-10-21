@@ -67,13 +67,17 @@ class Groups extends ActiveRecord
         ")->execute();
     }
 
-    static public function getSells($groupId = null, $period = null)
+    static public function getSells($groupId = null, $sellerId = null, $period = null)
     {
         $where = [];
         $cond = [];
         if ($groupId) {
             $where[] = "`relation`.`group` = :groupId";
             $cond['groupId'] = $groupId;
+        }
+        if ($sellerId) {
+            $where[] = "`person`.`id` = :sellerId";
+            $cond['sellerId'] = $sellerId;
         }
         if (!$period) {
             $period = date('Y-m-01');
@@ -156,7 +160,6 @@ class Groups extends ActiveRecord
             SELECT
                 `p`.`id` AS `idPerson`,
                 `p`.`fio` AS `fioPerson`,
-                `p`.`login` AS `loginPerson`,
                 `p`.`access_type` AS `accessType`,
                 `at`.`name` AS `accessTypeName`,
                 `pl`.`monthly` AS `monthly`,
@@ -210,11 +213,18 @@ class Groups extends ActiveRecord
      */
     static public function addCorrection($personId, $managerId, $value, $period, $comment)
     {
+        $sellsData = self::getSells(null, $personId, $period);
+        if (empty($sellsData)) {
+            return false;
+        };
+        $sellsData = $sellsData[0];
         $db = self::getDb();
         $cmd = $db->createCommand()->insert('manual_sells', [
             'seller' => $personId,
             'manager' => $managerId,
             'value' => $value,
+            'old_value' => $sellsData['sellsValue'],
+            'new_value' => $sellsData['sellsValue'] + $value,
             'date' => $period,
             'comment' => $comment
         ]);
@@ -246,6 +256,8 @@ class Groups extends ActiveRecord
               `ms`.`id` AS `correctionId`,
               `ms`.`manager` AS `managerId`,
               `ms`.`value` AS `value`,
+              `ms`.`old_value` AS `old_value`,
+              `ms`.`new_value` AS `new_value`,
               `ms`.`date` AS `period`,
               `ms`.`comment` AS `comment`
             FROM
@@ -297,7 +309,6 @@ class Groups extends ActiveRecord
             SELECT
                 `p`.`id` AS `idPerson`,
                 `p`.`fio` AS `fioPerson`,
-                `p`.`login` AS `loginPerson`,
                 `p`.`access_type` AS `accessType`,
                 `at`.`name` AS `accessTypeName`
             FROM
@@ -311,16 +322,78 @@ class Groups extends ActiveRecord
     static public function createPerson($data)
     {
         $db = self::getDb();
+
+        $res = self::getDb()->createCommand("
+            SELECT
+              `person`.`id` AS `personId`
+            FROM
+              `person`
+            WHERE
+              `person`.`fio` = :fio
+            ORDER BY
+                `person`.`fio`
+        ", ['fio' => $data['fioPerson']])->queryAll();
+        if (!empty($res)) {
+            return false;
+        }
+
         $transaction = $db->beginTransaction();
         try {
             $db->createCommand()->insert('person', [
                 'fio' => $data['fioPerson'],
-                'login' => $data['loginPerson'],
                 'password' => hash_hmac('md5', $data['passwordPerson'], Yii::$app->request->passwordSalt),
                 'access_type' => $data['access_type']
             ])->execute();
             $transaction->commit();
             return $db->lastInsertID;
+        } catch(Exception $e) {
+            $transaction->rollBack();
+            return false;
+        }
+    }
+
+    static public function removePerson($id)
+    {
+        if ($id <= 1) {
+            return false;
+        }
+        $db = self::getDb();
+        $transaction = $db->beginTransaction();
+        try {
+            $db->createCommand()->delete('manual_sells', "`seller` = :personId",
+                [
+                    'personId' => $id
+                ]
+            )->execute();
+            $db->createCommand()->update('manual_sells',
+                [
+                    'manager' => 1
+                ], [
+                    'manager' => $id
+                ]
+            )->execute();
+            $db->createCommand()->delete('plans', "`seller_id` = :personId",
+                [
+                    'personId' => $id
+                ]
+            )->execute();
+            $db->createCommand()->delete('relation', "`person` = :personId",
+                [
+                    'personId' => $id
+                ]
+            )->execute();
+            $db->createCommand()->delete('sells', "`seller` = :personId",
+                [
+                    'personId' => $id
+                ]
+            )->execute();
+            $db->createCommand()->delete('person', "`id` = :personId",
+                [
+                    'personId' => $id
+                ]
+            )->execute();
+            $transaction->commit();
+            return true;
         } catch(Exception $e) {
             $transaction->rollBack();
             return false;
@@ -334,7 +407,6 @@ class Groups extends ActiveRecord
         try {
             $forUpdateData = [
                 'fio' => $data['fioPerson'],
-                'login' => $data['loginPerson'],
                 'access_type' => $data['access_type']
             ];
             if (!empty($data['passwordPerson'])) {
@@ -396,6 +468,39 @@ class Groups extends ActiveRecord
                     $db->createCommand()->batchInsert('relation', ['group', 'person'], $insertValues)->execute();
                 }
             }
+            $transaction->commit();
+            return true;
+        } catch(Exception $e) {
+            $transaction->rollBack();
+            return false;
+        }
+    }
+
+    static public function removeGroup($id)
+    {
+        $db = self::getDb();
+        $transaction = $db->beginTransaction();
+        try {
+            $db->createCommand()->delete('manual_sells', "`seller` = :groupId",
+                [
+                    'groupId' => $id
+                ]
+            )->execute();
+            $db->createCommand()->delete('plans', "`groups_id` = :groupId",
+                [
+                    'groupId' => $id
+                ]
+            )->execute();
+            $db->createCommand()->delete('relation', "`group` = :groupId",
+                [
+                    'groupId' => $id
+                ]
+            )->execute();
+            $db->createCommand()->delete('groups', "`id` = :groupId",
+                [
+                    'groupId' => $id
+                ]
+            )->execute();
             $transaction->commit();
             return true;
         } catch(Exception $e) {
@@ -494,7 +599,7 @@ class Groups extends ActiveRecord
         ", $paramsArr)->queryAll();
     }
 
-    static public function getSellsByInterval($startDate, $endDate, $groupId = null)
+    static public function getSellsByInterval($startDate, $endDate, $groupId = null, $sellersList = [])
     {
         $where = [];
         $cond = [];
@@ -528,13 +633,14 @@ class Groups extends ActiveRecord
                 LEFT JOIN `groups` ON `groups`.`id` = `relation`.`group`
                 LEFT JOIN `plans` ON `plans`.`seller_id` = `relation`.`person` AND `plans`.`groups_id` = `relation`.`group`
             WHERE
+                " . (!empty($sellersList) ? "`person`.`id` IN ('" . implode("', '", $sellersList) . "') AND " : "") . "
                 " . implode(' AND ', $where) . "
             GROUP BY
                 `person`.`id`,
                 `sells`.`date`
             ORDER BY
-                `person`.`fio` ASC,
-                `sells`.`date` DESC
+                `sells`.`date` DESC,
+                `person`.`fio` ASC
         ", $cond);
         return $forRet->queryAll();
     }

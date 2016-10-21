@@ -23,13 +23,6 @@ $this->title = 'Редактирование пользователей';
                             <fieldset>
                                 <legend>Персональные данные</legend>
                                 <div class="form-group">
-                                    <label for="loginUser" class="col-md-2 control-label">Логин</label>
-
-                                    <div class="col-md-10">
-                                        <input type="text" name="loginUser" class="form-control" placeholder="логин пользователя в системе">
-                                    </div>
-                                </div>
-                                <div class="form-group">
                                     <label for="nameUser" class="col-md-2 control-label">ФИО</label>
 
                                     <div class="col-md-10">
@@ -70,8 +63,9 @@ $this->title = 'Редактирование пользователей';
                     </div>
                     <div class="row">
                         <div class="col-md-12">
+                            <input type="button" class="btn btn-warning btn-sm btn-submit" name="remove_user" value="Удалить пользователя"/>
                             <a data-targetframe="frame0" class="btn btn-default btn-sm">Отмена</a>
-                            <input type="submit" class="btn btn-primary btn-sm" value="Сохранить"/>
+                            <input type="button" class="btn btn-primary btn-sm btn-submit" value="Сохранить"/>
                         </div>
                     </div>
                 </form>
@@ -81,13 +75,6 @@ $this->title = 'Редактирование пользователей';
                         <div class="col-md-6">
                             <fieldset>
                                 <legend>Персональные данные</legend>
-                                <div class="form-group">
-                                    <label for="loginUser" class="col-md-2 control-label">Логин</label>
-
-                                    <div class="col-md-10">
-                                        <input type="text" name="loginUser" class="form-control" placeholder="логин пользователя в системе">
-                                    </div>
-                                </div>
                                 <div class="form-group">
                                     <label for="nameUser" class="col-md-2 control-label">ФИО</label>
 

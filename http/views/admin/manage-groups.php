@@ -57,18 +57,19 @@ $this->title = 'Редактирование групп';
                             <label for="inputEmail" class="col-md-2 control-label">Ежемесячный план</label>
 
                             <div class="col-md-10">
-                                <input type="number" name="monthlyPlan" class="form-control" placeholder="0.00">
+                                <input type="number" name="monthlyPlan" class="form-control" placeholder="0.00" disabled="disabled">
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="inputEmail" class="col-md-2 control-label">Квартальный план</label>
 
                                 <div class="col-md-10">
-                                    <input type="number" name="quarterlyPlan" class="form-control" placeholder="0.00">
+                                    <input type="number" name="quarterlyPlan" class="form-control" placeholder="0.00" disabled="disabled">
                                 </div>
                         </div>
-                        <a data-targetframe="frame0" class="btn btn-default btn-sm">Отмена</a>
-                        <input type="submit" class="btn btn-primary btn-sm lockable" value="Сохранить"/>
+                        <input type="button" class="btn btn-warning btn-sm lockable btn-submit" name="remove_group" value="Удалить группу"/>
+                        <a data-targetframe="frame0" class="btn btn-default btn-sm lockable">Отмена</a>
+                        <input type="button" class="btn btn-primary btn-sm lockable btn-submit" value="Сохранить"/>
                     </fieldset>
                 </form>
                 <form data-frame="frame2" class="form-horizontal hide" method="post" action="?r=admin%2Fcreate-group">
@@ -105,16 +106,20 @@ $this->title = 'Редактирование групп';
                                 <div class="col-md-6">
                                     <label for="membersGroup">Члены группы*</label>
                                     <select name="membersGroup[]" data-select1="members" multiple="" class="form-control" style="height: 200px">
+                                        <?php $counter = 0; ?>
                                         <?php foreach($members as $person): ?>
-                                            <option value="<?=$person['personId']; ?>"><?=$person['personName']; ?></option>
+                                            <?php $counter++; ?>
+                                            <option value="<?=$person['personId']; ?>"><?=$counter . '. ' . $person['personName']; ?></option>
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="otherPersons">Все остальные*</label>
                                     <select name="otherPersons" data-select2="members" multiple="" class="form-control" style="height: 200px">
+                                        <?php $counter = 0; ?>
                                         <?php foreach($otherPersons as $person): ?>
-                                            <option value="<?=$person['personId']; ?>"><?=$person['personName']; ?></option>
+                                            <?php $counter++; ?>
+                                            <option value="<?=$person['personId']; ?>"><?=$counter . '. ' . $person['personName']; ?></option>
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
@@ -142,7 +147,7 @@ $this->title = 'Редактирование групп';
                                 <input type="text" name="annualPlan" class="form-control" placeholder="0.00">
                             </div>
                         </div>
-                        <a data-targetframe="frame0" class="btn btn-default btn-sm">Отмена</a>
+                        <a data-targetframe="frame0" class="btn btn-default btn-sm lockable">Отмена</a>
                         <input type="submit" class="btn btn-primary btn-sm" value="Создать"/>
                     </fieldset>
                 </form>

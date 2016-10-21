@@ -10,6 +10,13 @@ $(function() {
     }
     $.material.init();
 
+    $('a.lockable').click(function(e) {
+        if ($(this).attr('disabled')) {
+            e.preventDefault();
+            return false;
+        }
+    });
+
     $(".month-picker").datepicker({
         changeMonth: true,
         changeYear: true,
@@ -26,8 +33,8 @@ $(function() {
     $(".month-picker").focus(function () {
         $(".ui-datepicker-calendar").hide();
         $("#ui-datepicker-div").position({
-            my: "center top",
-            at: "center bottom",
+            my: "left top",
+            at: "left bottom",
             of: $(this)
         });
     });
@@ -36,8 +43,14 @@ $(function() {
     //$('.price-control').number(false, 2, '.', ' ');
 
     $('[data-targetframe]').on('click', function() {
+        if ($(this).attr('disabled')) {
+            return false;
+        }
         $('[data-frame]').addClass('hide');
         $('[data-frame="' + $(this).data('targetframe') + '"]').removeClass('hide');
+        $("body, html").animate({
+            scrollTop: 0
+        }, 800);
     });
 
     $('[data-select1], [data-select2]').on('dblclick', function() {
@@ -77,6 +90,9 @@ $(function() {
         var userId = Number($(this).val());
         fixedValues['userId'] = userId;
         if (/^\d+$/ig.test(userId)) {
+            var frame = $('[data-frame="frame1"]');
+            frame.find('[name="monthlyPlan"]').prop("disabled", false);
+            frame.find('[name="quarterlyPlan"]').prop("disabled", false);
             $.ajax({
                 url: "?r=admin%2Fget-seller-plan-json",
                 method: "POST",
@@ -132,10 +148,10 @@ $(function() {
     function verifyPlan(strComparePlan, obj)
     {
         if (strComparePlan == $(obj).val()) {
-            $('input.lockable, .lockable input, .lockable button, .lockable select').removeAttr("disabled");
+            $('input.lockable, .lockable input, .lockable button, .lockable select, a.lockable').removeAttr("disabled");
             hideAlert();
         } else {
-            $('input.lockable, .lockable input, .lockable button, .lockable select').attr('disabled', 'true');
+            $('input.lockable, .lockable input, .lockable button, .lockable select, a.lockable').attr('disabled', 'true');
             var content = 'Для того, чтобы сохранить изменения планов и перейти к редактированию группы, нажмите кнопку: ' +
                 '<input type="button" id="btn-save-plan" class="btn btn-link btn-sm" value="Сохранить"/>' +
                 '<br/>Для того, чтобы вернуть исходные значения планов и перейти к редактированию группы, нажмите кнопку: ' +
@@ -149,7 +165,7 @@ $(function() {
         var frame = $('[data-frame="frame1"]');
         frame.find('[name="monthlyPlan"]').val(fixedValues['monthlyPlan']);
         frame.find('[name="quarterlyPlan"]').val(fixedValues['quarterlyPlan']);
-        $('input.lockable, .lockable input, .lockable button, .lockable select').removeAttr("disabled");
+        $('input.lockable, .lockable input, .lockable button, .lockable select, a.lockable').removeAttr("disabled");
         hideAlert();
     }
 
@@ -210,7 +226,6 @@ $(function() {
                 // Заполняем форму
                 var frame = $('[data-frame="editUser"]');
                 frame.find('[name="userId"]').val(data[0].idPerson);
-                frame.find('[name="loginUser"]').val(data[0].loginPerson);
                 frame.find('[name="nameUser"]').val(data[0].fioPerson);
                 frame.find('select[name="accessType"] option').each(function(){
                     if ($(this).val() == data[0].accessType) {
@@ -243,20 +258,25 @@ $(function() {
                 frame.find('[name="typeGroup"]').html(groupTypes[data[0].groupType]);
                 frame.find('[name="nameGroup"]').val(data[0].groupName);
                 var buffer = '';
+
+                var counter = 0;
                 for (i in data['members']) {
                     if (data['members'][i].personName == null) {
                         data['members'][i].personName = '';
                     }
-                    buffer += '<option value="' + data['members'][i].personId + '">' + data['members'][i].personName + '</option>';
+                    counter++;
+                    buffer += '<option value="' + data['members'][i].personId + '">' + counter + '. ' + data['members'][i].personName + '</option>';
                 }
                 frame.find('[name="membersGroup[]"]').empty();
                 frame.find('[name="membersGroup[]"]').append(buffer);
                 buffer = '';
+                counter = 0;
                 for (i in data['otherPersons']) {
+                    counter++;
                     if (data['otherPersons'][i].personName == null) {
                         data['otherPersons'][i].personName = '';
                     }
-                    buffer += '<option value="' + data['otherPersons'][i].personId + '">' + data['otherPersons'][i].personName + '</option>';
+                    buffer += '<option value="' + data['otherPersons'][i].personId + '">' + counter + '. ' + data['otherPersons'][i].personName + '</option>';
                 }
                 frame.find('[name="otherPersons[]"]').empty();
                 frame.find('[name="otherPersons[]"]').append(buffer);
@@ -268,6 +288,25 @@ $(function() {
         ms += new Date().getTime();
         while (new Date() < ms){}
     }
+
+    $('.btn-submit').click(function() {
+        var btn = $(this);
+        var form = btn.parents('form');
+        if (btn.attr('name') == 'remove_user') {
+            if (!confirm('При удалении пользователя, он будет исключён из группы и информация о его продажах будет утеряна. Вы дейстивтельно хотите продолжить?')) {
+                return false;
+            }
+        }
+        if (btn.attr('name') == 'remove_group') {
+            if (!confirm('При удалении группы, все сотрудники будут исключены из неё. Вы дейстивтельно хотите продолжить?')) {
+                return false;
+            }
+        }
+        form.attr('action', form.attr('action') + (form.attr('action').length ? '&' : '?') + 'action=' + btn.attr('name'));
+        form.trigger('submit');
+    });
+
+    //*******
 
     if (window.page && page == 'tablo') {
         setInterval(function() {
@@ -416,6 +455,16 @@ $(function() {
 
     if (window.page && page == 'charts') {
         $(function () {
+            $('[name="unionMode"]').change(function() {
+                var self = $(this);
+                if (self.find('option:selected').val() == 1) {
+                    $('#chart-seller-filter').fadeIn();
+                } else {
+                    $('#chart-seller-filter').fadeOut();
+                }
+            });
+            $('[name="unionMode"]').trigger('change');
+
             Highcharts.setOptions({
                 lang: {
                     loading: 'Загрузка...',
@@ -439,7 +488,9 @@ $(function() {
             var startDate = window.startDate ? window.startDate : '';
             var endDate = window.endDate ? window.endDate : '';
 
-            $.getJSON('?r=admin%2Fget-charts-json&startDate=' + startDate + '&endDate=' + endDate + '&groupId=' + groupId + '&unionMode=' + unionMode, function (response) {
+            console.log($('[name="chart-filters"]').serialize());
+
+            $.getJSON('?' + $('[name="chart-filters"]').serialize().replace('r=admin%2Fcharts', 'r=admin%2Fget-charts-json'), function (response) {
                 console.log(response.series);
                 $('#chart').highcharts({
                     chart: {
