@@ -50,9 +50,9 @@ $offset = 40;
                 <h4 align="center"><?=$groupName; ?></h4>
                 <div class="table table-ratings">
                     <div class="row thead">
-                        <div class="col-lg-1 col-md-1 col-sm-1" style="text-align: center">Рейтинг</div>
-                        <div class="col-lg-5 col-md-5 col-sm-5" >ФИО</div>
-                        <div class="col-lg-5 col-md-5 col-sm-5" style="border: 1px solid #ffffff;">
+                        <div class="col-lg-1 col-md-1 col-sm-1" style="text-align: center; vertical-align: middle;">Рейтинг</div>
+                        <div class="col-lg-4 col-md-4 col-sm-4" style="text-align: center; vertical-align: middle;">ФИО</div>
+                        <div class="col-lg-6 col-md-6 col-sm-6" style="border: 1px solid #ffffff;">
                             <div>
                                 <div class="col-lg-12 col-md-12 col-sm-12" style="text-align: center">Квартал</div>
                             </div>
@@ -60,8 +60,9 @@ $offset = 40;
                                 <div class="col-lg-2 col-md-2 col-sm-2"><?=$monthNames[0]; ?></div>
                                 <div class="col-lg-2 col-md-2 col-sm-2"><?=$monthNames[1]; ?></div>
                                 <div class="col-lg-2 col-md-2 col-sm-2"><?=$monthNames[2]; ?></div>
-                                <div class="col-lg-3 col-md-3 col-sm-3">Доход</div>
-                                <div class="col-lg-3 col-md-3 col-sm-3">План</div>
+                                <div class="col-lg-1 col-md-1 col-sm-1"></div>
+                                <div class="col-lg-2 col-md-2 col-sm-2">Доход</div>
+                                <div class="col-lg-2 col-md-2 col-sm-2">План</div>
                             </div>
                         </div>
                         <div class="col-lg-1 col-md-1 col-sm-1">Доход за год</div>
@@ -77,13 +78,14 @@ $offset = 40;
                         ?>
                         <div class="row tbody" data-position="<?=$place; ?>" id="row<?=$sell['personId']; ?>" style="top: <?=$offset + $step*$place; ?>px; z-index: <?=99-$place; ?>">
                             <div class="place col-lg-1 col-md-1 col-sm-1" style="text-align: center"><?=$placeHtml; ?></div>
-                            <div class="col-lg-5 col-md-5 col-sm-5"><?=$sell['personName']; ?></div>
-                            <div class="col-lg-5 col-md-5 col-sm-5" style="border-left: 1px solid #ffffff; border-right: 1px solid #ffffff;">
+                            <div class="col-lg-4 col-md-4 col-sm-4"><?=$sell['personName']; ?></div>
+                            <div class="col-lg-6 col-md-6 col-sm-6" style="border-left: 1px solid #ffffff; border-right: 1px solid #ffffff;">
                                 <div class="sells-month1-value col-lg-2 col-md-2 col-sm-2"><?=number_format($sell['monthValue1'], 0, '.', ' '); ?></div>
                                 <div class="sells-month2-value col-lg-2 col-md-2 col-sm-2"><?=number_format($sell['monthValue2'], 0, '.', ' '); ?></div>
                                 <div class="sells-month3-value col-lg-2 col-md-2 col-sm-2"><?=number_format($sell['monthValue3'], 0, '.', ' '); ?></div>
-                                <div class="sells-value col-lg-3 col-md-3 col-sm-3"><?=number_format($sell['sellsValue'], 0, '.', ' '); ?></div>
-                                <div class="sells-plan-quarterly col-lg-3 col-md-3 col-sm-3"><?=number_format($sell['quarterly'], 0, '.', ' '); ?></div>
+                                <div class="col-lg-1 col-md-1 col-sm-1"></div>
+                                <div class="sells-value col-lg-2 col-md-2 col-sm-2"><?=number_format($sell['monthValue1'] + $sell['monthValue2'] + $sell['monthValue3'], 0, '.', ' '); ?></div>
+                                <div class="sells-plan-quarterly col-lg-2 col-md-2 col-sm-2"><?=number_format($sell['quarterly'], 0, '.', ' '); ?></div>
                             </div>
                             <div class="sells-year-value col-lg-1 col-md-1 col-sm-1"><?=number_format($sell['yearValue'], 0, '.', ' '); ?></div>
                         </div>

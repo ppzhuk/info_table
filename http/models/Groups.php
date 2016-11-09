@@ -71,7 +71,17 @@ class Groups extends ActiveRecord
     {
         $where = [];
         $cond = [];
+        $groupType = "seller";
         if ($groupId) {
+            $resGroup = self::getDb()->createCommand("
+                SELECT
+                  `group_type`
+                FROM
+                  `groups`
+                WHERE
+                  `id` = :id
+            ", ['id' => $groupId]);
+            $groupType = $resGroup->queryOne()['group_type'];
             $where[] = "`relation`.`group` = :groupId";
             $cond['groupId'] = $groupId;
         }
@@ -99,7 +109,7 @@ class Groups extends ActiveRecord
                 `person`.`access_type` AS `personAccessType`,
                 `relation`.`group` AS `groupId`,
                 `sells`.`date` AS `sellsPeriod`,
-                `sells`.`value` + `ai`.`correctionValue` AS `sellsValue`,
+                " . ($groupType == "KAM" ? "`monthValue1` + `monthValue2` + `monthValue3` AS `sellsValue`," : "`sells`.`value` + `ai`.`correctionValue` AS `sellsValue`,") . "
                 `groups`.`group_type` AS `groupType`,
                 `ai`.`yearValue` + `ai`.`correctionValue` AS `yearValue`,
                 `ai`.`monthValue1` + `ai`.`correctionMonthValue1` AS `monthValue1`,
@@ -479,13 +489,21 @@ class Groups extends ActiveRecord
     static public function removeGroup($id)
     {
         $db = self::getDb();
+        //**** Удаляем членов группы (временное решение)
+        $sellers = $db->createCommand("
+                SELECT
+                  `person`
+                FROM
+                  `relation`
+                WHERE
+                  `group` = :group
+            ", ['group' => $id])->queryAll();
+        foreach($sellers as $seller) {
+            self::removePerson($seller['person']);
+        }
+        //*****
         $transaction = $db->beginTransaction();
         try {
-            $db->createCommand()->delete('manual_sells', "`seller` = :groupId",
-                [
-                    'groupId' => $id
-                ]
-            )->execute();
             $db->createCommand()->delete('plans', "`groups_id` = :groupId",
                 [
                     'groupId' => $id

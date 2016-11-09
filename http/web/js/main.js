@@ -455,6 +455,16 @@ $(function() {
 
     if (window.page && page == 'charts') {
         $(function () {
+            $('#chart-seller-filter select').change(function() {
+                var sellerSelect = $(this);
+                $('#chart-seller-filter-info').html('Выбрано: ' + sellerSelect.find('option:selected').size() + '/'  + sellerSelect.find('option').size());
+            });
+
+            $('#btn-seller-filter-reset').click(function () {
+                $('#chart-seller-filter select option:selected').prop('selected', false);
+                $('#chart-seller-filter select').trigger('change');
+            });
+
             $('[name="unionMode"]').change(function() {
                 var self = $(this);
                 if (self.find('option:selected').val() == 1) {
@@ -487,8 +497,6 @@ $(function() {
             var groupId = window.groupId ? window.groupId : 0;
             var startDate = window.startDate ? window.startDate : '';
             var endDate = window.endDate ? window.endDate : '';
-
-            console.log($('[name="chart-filters"]').serialize());
 
             $.getJSON('?' + $('[name="chart-filters"]').serialize().replace('r=admin%2Fcharts', 'r=admin%2Fget-charts-json'), function (response) {
                 console.log(response.series);

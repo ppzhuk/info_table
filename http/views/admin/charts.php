@@ -84,6 +84,8 @@ $this->title = 'Графики';
                                         <?php endforeach; ?>
                                     </select>
                                     <span class="label">* - Чтобы выделить несколько продавцов, зажмите ctrl и нажмите на его имя. Если не выбран ни один продавец, то будут выведены данные по всем.</span>
+                                    <span id="chart-seller-filter-info">Выбрано: <?=isset($_GET['sellers']) ? count($_GET['sellers']) : '0'; ?>/<?=count($sellers); ?></span>
+                                    <button type="button" class="btn btn-xs btn-default" id="btn-seller-filter-reset">сбросить</button>
                                 </div>
                             </div>
                         </td>

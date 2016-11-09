@@ -193,8 +193,9 @@ class AdminController extends Controller
         $endDate = isset($_GET['endDate']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['endDate']) ? $_GET['endDate'] : date('Y-m-01');
         $groupId = isset($_GET['groupId']) ? intval($_GET['groupId']) : 0;
         $unionMode = isset($_GET['unionMode']) ? intval($_GET['unionMode']) : 0;
+        $sellers = isset($_GET['sellers']) ? $_GET['sellers'] : [];
         if (isset($_GET['export'])) {
-            return $this->actionGetExcel($unionMode, $groupId, $startDate, $endDate);
+            return $this->actionGetExcel($unionMode, $groupId, $startDate, $endDate, $unionMode = 1 ? $sellers : []);
         } else {
             return $this->render('charts',
                 [
@@ -209,7 +210,7 @@ class AdminController extends Controller
         }
     }
 
-    private function actionGetExcel($unionMode, $groupId, $startDate, $endDate)
+    private function actionGetExcel($unionMode, $groupId, $startDate, $endDate, $listSearchId = [])
     {
         $objPhpExcel = new \PHPExcel();
         $objPhpExcel->getProperties()
@@ -220,7 +221,7 @@ class AdminController extends Controller
             ->setCategory("Test result file");
         $objWorkSheet = $objPhpExcel->getActiveSheet();
 
-        $data = Groups::getSellsByInterval($startDate, $endDate, $groupId);
+        $data = Groups::getSellsByInterval($startDate, $endDate, $groupId, $listSearchId);
         $group = $groupId ? Groups::getGroups($groupId)[0] : null;
         $groups = Groups::getGroups();
         $prepareData = [];
@@ -229,9 +230,12 @@ class AdminController extends Controller
         switch ($unionMode) {
             case 0: {
                 $groupNames = [];
+                $colsRelation = [];
+                //$colsRelation = [ 3 => 1, 5 => 2, 4 => 3, 2 => 4];
                 foreach ($groups as $group) {
                     $groupNames[$group['groupId']] = $group['groupName'];
                 }
+                $colsCounter = 1;
                 foreach ($data as $sellsData) {
                     if (!isset($prepareData[$sellsData['sellsPeriod']])) {
                         $prepareData[$sellsData['sellsPeriod']] = [];
@@ -239,16 +243,17 @@ class AdminController extends Controller
                     if (!isset($prepareData[$sellsData['sellsPeriod']][$sellsData['groupId']])) {
                         $prepareData[$sellsData['sellsPeriod']][$sellsData['groupId']] = 0;
                     }
+                    if (!isset($colsRelation[$sellsData['groupId']])) {
+                        $colsRelation[$sellsData['groupId']] = $colsCounter++;
+                    }
                     $prepareData[$sellsData['sellsPeriod']][$sellsData['groupId']] += $sellsData['sellsValue'];
                 }
                 $row = 1;
                 foreach ($prepareData as $period => $sellsData) {
                     if ($row == 1) {
-                        $col = 1;
-                        foreach ($sellsData as $groupId => $value) {
-                            $objPhpExcel->getActiveSheet()->getColumnDimensionByColumn($col)->setWidth(20);
-                            $objWorkSheet->setCellValueByColumnAndRow($col, $row, $groupNames[$groupId]);
-                            $col++;
+                        foreach ($colsRelation as $id => $position) {
+                            $objPhpExcel->getActiveSheet()->getColumnDimensionByColumn($position)->setWidth(20);
+                            $objWorkSheet->setCellValueByColumnAndRow($position, $row, $groupNames[$id]);
                         }
                         $objPhpExcel->getActiveSheet()->getColumnDimensionByColumn(0)->setWidth(20);
                         $objWorkSheet->setCellValueByColumnAndRow(0, 1, 'Период/Группа');
@@ -263,15 +268,56 @@ class AdminController extends Controller
                 foreach ($prepareData as $period => $sellsData) {
                     $col = 1;
                     foreach ($sellsData as $groupId => $value) {
-                        $objWorkSheet->setCellValueByColumnAndRow($col, $row, $value);
-                        $col++;
+                        $objWorkSheet->setCellValueByColumnAndRow($colsRelation[$groupId], $row, $value);
                     }
                     $row++;
                 }
+                break;
                 //$objWorkSheet->setCellValue('A1', '1 этаж');
             }
             case 1: {
+                $sellerNames = [];
+                $colsRelation = [];
+                $colsCounter = 1;
+                foreach ($data as $sellsData) {
+                    $sellerNames[$sellsData['personId']] = $sellsData['personName'];
+                    if (!isset($prepareData[$sellsData['personId']])) {
+                        $prepareData[$sellsData['personId']] = [];
+                    }
+                    if (!isset($prepareData[$sellsData['personId']][$sellsData['sellsPeriod']])) {
+                        $prepareData[$sellsData['personId']][$sellsData['sellsPeriod']] = 0;
+                    }
+                    if (!isset($colsRelation[$sellsData['sellsPeriod']])) {
+                        $colsRelation[$sellsData['sellsPeriod']] = $colsCounter++;
+                    }
+                    $prepareData[$sellsData['personId']][$sellsData['sellsPeriod']] += $sellsData['sellsValue'];
+                }
+                $row = 1;
+                foreach ($prepareData as $sellerId => $sellsData) {
+                    if ($row == 1) {
+                        foreach ($colsRelation as $period => $position) {
+                            $objPhpExcel->getActiveSheet()->getColumnDimensionByColumn($position)->setWidth(15);
+                            $objWorkSheet->setCellValueByColumnAndRow($position, $row, $period);
+                        }
+                        $objPhpExcel->getActiveSheet()->getColumnDimensionByColumn(0)->setWidth(50);
+                        $objWorkSheet->setCellValueByColumnAndRow(0, 1, 'ФИО/Период');
+                        $row++;
+                    }
+                    $col = 0;
+                    $objWorkSheet->setCellValueByColumnAndRow($col, $row, $sellerNames[$sellerId]);
+                    $row++;
+                }
 
+                $row = 2;
+                foreach ($prepareData as $userId => $sellsData) {
+                    $col = 1;
+                    foreach ($sellsData as $period => $value) {
+                        $objWorkSheet->setCellValueByColumnAndRow($colsRelation[$period], $row, $value);
+                    }
+                    $row++;
+                }
+                break;
+                //var_dump($prepareData); die;
             }
         }
 
